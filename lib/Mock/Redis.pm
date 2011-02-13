@@ -5,7 +5,7 @@ use strict;
 
 =head1 NAME
 
-Mock::Redis - The great new Mock::Redis!
+Mock::Redis - use in place of Redis for unit testing
 
 =head1 VERSION
 
@@ -27,18 +27,16 @@ Perhaps a little code snippet.
     my $foo = Mock::Redis->new();
     ...
 
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
 =head1 SUBROUTINES/METHODS
 
-=head2 function1
+=head2 new
+
+    Create a new Mock::Redis object.  Can be passed a hashref 
+    that determines the contents of the mock Redis database.
 
 =cut
 
-sub function1 {
+sub new {
 }
 
 =head2 function2
