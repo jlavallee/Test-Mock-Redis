@@ -3,6 +3,9 @@ package Mock::Redis;
 use warnings;
 use strict;
 
+use Scalar::Util qw/blessed/;
+use Set::Scalar;
+
 =head1 NAME
 
 Mock::Redis - use in place of Redis for unit testing
@@ -71,7 +74,7 @@ sub shutdown {
 sub set {
     my ( $self, $key, $value ) = @_;
 
-    $self->_stash->{$key} = $value;
+    $self->_stash->{$key} = "$value";
     return 1;
 }
 
@@ -79,7 +82,7 @@ sub setnx {
     my ( $self, $key, $value ) = @_;
 
     unless($self->exists($key)){
-        $self->_stash->{$key} = $value;
+        $self->_stash->{$key} = "$value";
         return 1;
     }
     return 0;
@@ -150,11 +153,13 @@ sub type {
 
     return !$type 
          ? 'string'
-         : $type eq 'HASH' 
+         : $type eq 'Set::Scalar'
+           ? 'set'
+           : $type eq 'HASH' 
              ? 'hash'
              : $type eq 'ARRAY' 
-                 ? 'list'
-                 : 'unknown'
+               ? 'list'
+               : 'unknown'
     ;
 }
 
@@ -200,7 +205,7 @@ sub rpush {
     $self->_stash->{$key} = []
         unless ref $self->_stash->{$key} eq 'ARRAY';
 
-    return push @{ $self->_stash->{$key} }, $value;
+    return push @{ $self->_stash->{$key} }, "$value";
 }
 
 sub lpush {
@@ -209,7 +214,7 @@ sub lpush {
     $self->_stash->{$key} = []
         unless ref $self->_stash->{$key} eq 'ARRAY';
 
-    return unshift @{ $self->_stash->{$key} }, $value;
+    return unshift @{ $self->_stash->{$key} }, "$value";
 }
 
 sub llen {
@@ -240,27 +245,23 @@ sub lindex {
 sub lset {
     my ( $self, $key, $index, $value ) = @_;
 
-    $self->_stash->{$key}->[$index] = $value;
+    $self->_stash->{$key}->[$index] = "$value";
     return 1;
 }
 
 sub lrem {
     my ( $self, $key, $count, $value ) = @_;
-
     my $removed;
-
     my @indicies = $count < 0
                  ? ($#{ $self->_stash->{$key} }..0)
                  : (0..$#{ $self->_stash->{$key} })
     ;
-
     $count = abs $count;
 
     for my $index (@indicies){
         if($self->_stash->{$key}->[$index] eq $value){
             splice @{ $self->_stash->{$key} }, $index, 1;
-            $removed++;
-            last if $count && $removed >= $count;
+            last if $count && ++$removed >= $count;
         }
     }
     
@@ -291,6 +292,57 @@ sub _stash {
 
     return $self->{_stash}->[$index];
 }
+
+sub sadd {
+    my ( $self, $key, $value ) = @_;
+
+    $self->_stash->{$key} = Set::Scalar->new
+        unless blessed $self->_stash->{$key} 
+            && $self->_stash->{$key}->isa( 'Set::Scalar' );
+
+    my $return = !$self->_stash->{$key}->member("$value");
+    $self->_stash->{$key}->insert("$value");
+    return $return;
+}
+
+sub scard {
+    my ( $self, $key ) = @_;
+
+    return scalar $self->_stash->{$key}->members;
+}
+
+sub sismember {
+    my ( $self, $key, $value ) = @_;
+
+    return $self->_stash->{$key}->member("$value");
+}
+
+sub srem {
+    my ( $self, $key, $value ) = @_;
+
+    my $return = $self->_stash->{$key}->member("$value");
+    $self->_stash->{$key}->delete("$value");
+    return $return;
+}
+
+sub sinter {
+    my ( $self, $key, @keys ) = @_;
+
+    my $r = $self->_stash->{$key};
+    $r = $r->intersection($self->_stash->{$_})
+        for @keys;
+
+    return reverse $r->members;
+}
+
+sub sinterstore {
+    my ( $self, $dest, @keys ) = @_;
+
+    $self->_stash->{$dest} = Set::Scalar->new;
+    $self->_stash->{$dest}->insert($self->sinter(@keys));
+    return $self->scard($dest);
+}
+
 
 =head1 AUTHOR
 
