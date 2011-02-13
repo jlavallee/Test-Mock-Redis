@@ -146,7 +146,45 @@ sub type {
     return 0 unless $self->exists($key);
 
     my $type = ref $self->_stash->{$key};
+
+    return !$type 
+         ? 'string'
+         : $type eq 'HASH' 
+             ? 'hash'
+             : 'unknown'
+    ;
 }
+
+sub keys {
+    my ( $self, $match ) = @_;
+
+    # TODO: we're not escaping other meta-characters
+    $match =~ s/(?<!\\)\*/.*/g;
+    $match =~ s/(?<!\\)\?/.?/g;
+
+    return @{[ sort { $a cmp $b } grep { /$match/ } CORE::keys %{ $self->_stash }]};
+}
+
+sub randomkey {
+    my $self = shift;
+
+    return ( CORE::keys %{ $self->_stash } )[
+                int(rand( scalar CORE::keys %{ $self->_stash } ))
+            ]
+    ;
+}
+
+sub rename {
+    my ( $self, $from, $to, $whine ) = @_;
+
+    return 0 unless $self->exists($from);
+    return 0 if $from eq $to;
+    die "rename to existing key" if $whine && $self->_stash->{$to};
+
+    $self->_stash->{$to} = $self->_stash->{$from};
+    return 1;
+}
+
 
 sub select {
     my ( $self, $index ) = @_;
