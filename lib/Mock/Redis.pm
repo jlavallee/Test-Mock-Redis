@@ -84,6 +84,7 @@ sub setnx {
     }
     return 0;
 }
+
 sub exists {
     my ( $self, $key ) = @_;
     return exists $self->_stash->{$key};
@@ -151,7 +152,9 @@ sub type {
          ? 'string'
          : $type eq 'HASH' 
              ? 'hash'
-             : 'unknown'
+             : $type eq 'ARRAY' 
+                 ? 'list'
+                 : 'unknown'
     ;
 }
 
@@ -185,6 +188,99 @@ sub rename {
     return 1;
 }
 
+sub dbsize {
+    my $self = shift;
+
+    return scalar CORE::keys %{ $self->_stash };
+}
+
+sub rpush {
+    my ( $self, $key, $value ) = @_;
+
+    $self->_stash->{$key} = []
+        unless ref $self->_stash->{$key} eq 'ARRAY';
+
+    return push @{ $self->_stash->{$key} }, $value;
+}
+
+sub lpush {
+    my ( $self, $key, $value ) = @_;
+
+    $self->_stash->{$key} = []
+        unless ref $self->_stash->{$key} eq 'ARRAY';
+
+    return unshift @{ $self->_stash->{$key} }, $value;
+}
+
+sub llen {
+    my ( $self, $key ) = @_;
+
+    return scalar @{ $self->_stash->{$key} };
+}
+
+sub lrange {
+    my ( $self, $key, $start, $end ) = @_;
+
+    return @{ $self->_stash->{$key} }[$start..$end];
+}
+
+sub ltrim {
+    my ( $self, $key, $start, $end ) = @_;
+
+    $self->_stash->{$key} = [ @{ $self->_stash->{$key} }[$start..$end] ]; 
+    return 1;
+}
+
+sub lindex {
+    my ( $self, $key, $index ) = @_;
+
+    return $self->_stash->{$key}->[$index];
+}
+
+sub lset {
+    my ( $self, $key, $index, $value ) = @_;
+
+    $self->_stash->{$key}->[$index] = $value;
+    return 1;
+}
+
+sub lrem {
+    my ( $self, $key, $count, $value ) = @_;
+
+    my $removed;
+
+    if( $count >= 0){
+        for(0..$#{ $self->_stash->{$key} }){
+            if($self->_stash->{$key}->[$_] eq $value){
+                splice @{ $self->_stash->{$key} }, $_, 1;
+                $removed++;
+                last if $count && $removed >= $count;
+            }
+        }
+    }else{
+        for($#{ $self->_stash->{$key} }..0){
+            if($self->_stash->{$key}->[$_] eq $value){
+                splice @{ $self->_stash->{$key} }, $_, 1;
+                $removed--;
+                last if $removed <= $count;
+            }
+        }
+    }
+    
+    return abs($removed);
+}
+
+sub lpop {
+    my ( $self, $key ) = @_;
+
+    return shift @{ $self->_stash->{$key} };
+}
+
+sub rpop {
+    my ( $self, $key ) = @_;
+
+    return pop @{ $self->_stash->{$key} };
+}
 
 sub select {
     my ( $self, $index ) = @_;
