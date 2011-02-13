@@ -249,25 +249,22 @@ sub lrem {
 
     my $removed;
 
-    if( $count >= 0){
-        for(0..$#{ $self->_stash->{$key} }){
-            if($self->_stash->{$key}->[$_] eq $value){
-                splice @{ $self->_stash->{$key} }, $_, 1;
-                $removed++;
-                last if $count && $removed >= $count;
-            }
-        }
-    }else{
-        for($#{ $self->_stash->{$key} }..0){
-            if($self->_stash->{$key}->[$_] eq $value){
-                splice @{ $self->_stash->{$key} }, $_, 1;
-                $removed--;
-                last if $removed <= $count;
-            }
+    my @indicies = $count < 0
+                 ? ($#{ $self->_stash->{$key} }..0)
+                 : (0..$#{ $self->_stash->{$key} })
+    ;
+
+    $count = abs $count;
+
+    for my $index (@indicies){
+        if($self->_stash->{$key}->[$index] eq $value){
+            splice @{ $self->_stash->{$key} }, $index, 1;
+            $removed++;
+            last if $count && $removed >= $count;
         }
     }
     
-    return abs($removed);
+    return $removed;
 }
 
 sub lpop {
