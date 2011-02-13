@@ -36,14 +36,129 @@ Perhaps a little code snippet.
 
 =cut
 
+our %defaults = (
+    _quit     => 0,
+    _stash    => [ map { {} } (1..16) ],
+    _db_index => 0,
+);
+
 sub new {
+    my $class = shift;
+    my %args = @_;
+
+    my $self = bless { %defaults, %args }, $class;
+    return $self;
 }
 
-=head2 function2
+sub ping {
+    my $self = shift;
 
-=cut
+    return !$self->{_quit};
+}
 
-sub function2 {
+sub quit {
+    my $self = shift;
+
+    $self->{_quit} = 1;
+}
+
+sub shutdown {
+    my $self = shift;
+
+    $self->{_quit} = 1;
+}
+
+sub set {
+    my ( $self, $key, $value ) = @_;
+
+    $self->_stash->{$key} = $value;
+    return 1;
+}
+
+sub setnx {
+    my ( $self, $key, $value ) = @_;
+
+    unless($self->exists($key)){
+        $self->_stash->{$key} = $value;
+        return 1;
+    }
+    return 0;
+}
+sub exists {
+    my ( $self, $key ) = @_;
+    return exists $self->_stash->{$key};
+}
+
+sub get {
+    my ( $self, $key  ) = @_;
+
+    return $self->_stash->{$key};
+}
+
+sub incr {
+    my ( $self, $key  ) = @_;
+
+    $self->_stash->{$key} ||= 0;
+
+    return ++$self->_stash->{$key};
+}
+
+sub incrby {
+    my ( $self, $key, $incr ) = @_;
+
+    $self->_stash->{$key} ||= 0;
+
+    return $self->_stash->{$key} += $incr;
+}
+
+sub decr {
+    my ( $self, $key ) = @_;
+
+    return --$self->_stash->{$key};
+}
+
+sub decrby {
+    my ( $self, $key, $decr ) = @_;
+
+    return $self->_stash->{$key} -= $decr;
+}
+
+sub mget {
+    my ( $self, @keys ) = @_;
+
+    return map { $self->_stash->{$_} } @keys;
+}
+
+sub del {
+    my ( $self, $key ) = @_;
+
+    my $ret = $self->exists($key);
+
+    delete $self->_stash->{$key};
+
+    return $ret;
+}
+
+sub type {
+    my ( $self, $key ) = @_;
+    # types are string, list, set, zset and hash
+
+    return 0 unless $self->exists($key);
+
+    my $type = ref $self->_stash->{$key};
+}
+
+sub select {
+    my ( $self, $index ) = @_;
+
+    $self->{_db_index} = $index;
+}
+
+sub _stash {
+    my ( $self, $index ) = @_;
+    $index = $self->{_db_index} unless defined $index;
+
+    return $self->{_stash}->[$index];
 }
 
 =head1 AUTHOR
