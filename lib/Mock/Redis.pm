@@ -524,61 +524,129 @@ sub info {
     };
 }
 
+sub zadd {
+    my ( $self, $key, $score, $value ) = @_;
+
+    $self->_stash->{$key} ||= {};
+
+    my $ret = !exists $self->_stash->{$key}->{$value};
+    $self->_stash->{$key}->{$value} = $score;
+    return $ret;
+}
+
+sub zscore {
+    my ( $self, $key, $value ) = @_;
+    return $self->_stash->{$key}->{$value};
+}
+
+sub zincrby {
+    my ( $self, $key, $score, $value ) = @_;
+
+    $self->_stash->{$key}->{$value} ||= 0;
+
+    return $self->_stash->{$key}->{$value} += $score;
+}
+
+sub zrank {
+    my ( $self, $key, $value ) = @_;
+    my $rank = 0;
+    foreach my $elem ( $self->zrange($key, 0, $self->zcard($key)) ){
+        return $rank if $value eq $elem;
+        $rank++;
+    }
+    return undef;
+}
+
+sub zrevrank {
+    my ( $self, $key, $value ) = @_;
+    my $rank = 0;
+    foreach my $elem ( $self->zrevrange($key, 0, $self->zcard($key)) ){
+        return $rank if $value eq $elem;
+        $rank++;
+    }
+    return undef;
+}
+
+sub zrange {
+    my ( $self, $key, $start, $stop, $withscores ) = @_;
+
+    $stop = $self->zcard($key)-1 if $stop >= $self->zcard($key);
+    
+    return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ } 
+               ( map { $_->[0] }
+                     sort { $a->[1] <=> $b->[1] }
+                         map { [ $_, $self->_stash->{$key}->{$_} ] }
+                             CORE::keys %{ $self->_stash->{$key} } 
+               )[$start..$stop]
+    ;
+}
+
+sub zrevrange {
+    my ( $self, $key, $start, $stop, $withscores ) = @_;
+
+    $stop = $self->zcard($key)-1 if $stop >= $self->zcard($key);
+
+    return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ } 
+               ( map { $_->[0] }
+                     sort { $b->[1] <=> $a->[1] }
+                         map { [ $_, $self->_stash->{$key}->{$_} ] }
+                             CORE::keys %{ $self->_stash->{$key} } 
+               )[$start..$stop]
+    ;
+}
+
+sub zrangebyscore {
+    my ( $self, $key, $min, $max, $withscores ) = @_;
+
+    my $min_inc = !( $min =~ s/^\(// );
+    my $max_inc = !( $max =~ s/^\(// );
+
+    my $cmp = !$min_inc && !$max_inc
+            ? sub { $self->zscore($key, $_[0]) > $min && $self->zscore($key, $_[0]) < $max }
+            : !$min_inc 
+              ? sub { $self->zscore($key, $_[0]) > $min && $self->zscore($key, $_[0]) <= $max }
+              : !$max_inc 
+                ? sub { $self->zscore($key, $_[0]) >= $min && $self->zscore($key, $_[0]) <  $max }
+                : sub { $self->zscore($key, $_[0]) >= $min && $self->zscore($key, $_[0]) <= $max }
+    ;
+            
+    return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ } 
+               grep { $cmp->($_) } $self->zrange($key, 0, $self->zcard($key)-1);
+                   $self->zrange($key, 0, $self->zcard($key)-1);
+}
+
+sub zcount {
+    my ( $self, $key, $min, $max ) = @_;
+    return scalar $self->zrangebyscore($key, $min, $max);
+}
+
+sub zcard {
+    my ( $self, $key ) = @_;
+    return scalar values %{ $self->_stash->{$key} }
+}
+
+sub zremrangebyrank {
+    my ( $self, $key, $start, $stop ) = @_;
+
+    my @remove = $self->zrange($key, $start, $stop);
+    delete $self->_stash->{$key}->{$_} for @remove;
+    return scalar @remove;
+}
+
+sub zremrangebyscore {
+    my ( $self, $key, $start, $stop ) = @_;
+
+    my @remove = $self->zrangebyscore($key, $start, $stop);
+    delete $self->_stash->{$key}->{$_} for @remove;
+    return scalar @remove;
+}
+
 
 =head1 TODO
 
 Not all Redis functionality is implemented.  Pull requests welcome!
 
 =cut
-
-
-sub zadd {
-    my ( $self, $key, $score, $value ) = @_;
-}
-
-sub zscore {
-    my ( $self, $key, $value ) = @_;
-}
-
-sub zincrby {
-    my ( $self, $key, $score, $value ) = @_;
-}
-
-sub zrank {
-    my ( $self, $key, $value ) = @_;
-}
-
-sub zrevrank {
-    my ( $self, $key, $value ) = @_;
-}
-
-sub zrange {
-    my ( $self, $key, $start, $stop ) = @_;
-}
-
-sub zrevrange {
-    my ( $self, $key, $start, $stop ) = @_;
-}
-
-sub zrangebyscore {
-    my ( $self, $key, $start, $stop ) = @_;
-}
-
-sub zcount {
-    my ( $self, $key, $start, $stop ) = @_;
-}
-
-sub zcard {
-    my ( $self, $key, $start, $stop ) = @_;
-}
-
-sub zremrangebyrank {
-    my ( $self, $key, $start, $stop ) = @_;
-}
-
-sub zremrangebyscore {
-    my ( $self, $key, $start, $stop ) = @_;
-}
 
 
 =head1 AUTHOR
