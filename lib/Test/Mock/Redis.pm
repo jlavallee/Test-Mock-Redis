@@ -91,10 +91,40 @@ sub setnx {
     return 0;
 }
 
+sub setex {
+    my ( $self, $key, $value, $ttl ) = @_;
+    $self->set($key, $value);
+    return $self->expire($key, $ttl);
+}
+
 sub expire {
     my ( $self, $key, $ttl ) = @_;
 
     return $self->expireat($key, time + $ttl);
+}
+
+sub persist {
+    my ( $self, $key, $ttl ) = @_;
+
+    return 0 unless exists $self->_stash->{$key};
+
+    my $slot = $self->_stash;
+    my $tied = tied(%$slot);
+
+    $tied->persist($key);
+
+    return 1;
+}
+
+sub ttl {
+    my ( $self, $key, $ttl ) = @_;
+
+    return 0 unless exists $self->_stash->{$key};
+
+    my $slot = $self->_stash;
+    my $tied = tied(%$slot);
+
+    return $tied->ttl($key);
 }
 
 sub expireat {
@@ -228,6 +258,13 @@ sub rename {
 
     $self->_stash->{$to} = $self->_stash->{$from};
     return 1;
+}
+
+sub renamenx {
+    my ( $self, $from, $to ) = @_;
+
+    return 0 if $self->exists($to);
+    return $self->rename($from, $to);
 }
 
 sub dbsize {
@@ -775,12 +812,14 @@ sub DELETE {
     delete $self->{$key};
 }
 
+my $expires;
+
 sub FETCH {
     my ( $self, $key ) = @_;
 
     delete $self->{$key}
-        if $self->{$self->_expires_key($key)}
-           && time >= $self->{$self->_expires_key($key)}
+        if exists $expires->{$self->_expires_key($key)}
+           && time >= $expires->{$self->_expires_key($key)}
     ;
 
     return $self->{$key};
@@ -789,7 +828,20 @@ sub FETCH {
 sub expire {
     my ( $self, $key, $time ) = @_;
 
-    $self->{$self->_expires_key($key)} = $time;
+    $expires->{$self->_expires_key($key)} = $time;
+}
+
+sub persist {
+    my ( $self, $key, $time ) = @_;
+
+    delete $expires->{$self->_expires_key($key)};
+}
+
+sub ttl {
+    my ( $self, $key ) = @_;
+
+    return 0 unless exists $expires->{$self->_expires_key($key)};
+    return $expires->{$self->_expires_key($key)} - time;
 }
 
 sub _expires_key {
