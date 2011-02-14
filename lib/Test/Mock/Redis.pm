@@ -1,4 +1,4 @@
-package Mock::Redis;
+package Test::Mock::Redis;
 
 use warnings;
 use strict;
@@ -8,7 +8,7 @@ use Scalar::Util qw/blessed/;
 
 =head1 NAME
 
-Mock::Redis - use in place of Redis for unit testing
+Test::Mock::Redis - use in place of Redis for unit testing
 
 =head1 VERSION
 
@@ -21,12 +21,12 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-Mock::Redis can be used in place of Redis for running
+Test::Mock::Redis can be used in place of Redis for running
 tests without needing a running redis instance.
 
-    use Mock::Redis;
+    use Test::Mock::Redis;
 
-    my $redis = Mock::Redis->new(server => 'whatever');
+    my $redis = Test::Mock::Redis->new(server => 'whatever');
     ...
     
 
@@ -34,7 +34,7 @@ tests without needing a running redis instance.
 
 =head2 new
 
-    Create a new Mock::Redis object. 
+    Create a new Test::Mock::Redis object. 
 
     It can be used in place of a Redis object for unit testing.
 
@@ -154,9 +154,9 @@ sub type {
 
     return !$type 
          ? 'string'
-         : $type eq 'Mock::Redis::Set'
+         : $type eq 'Test::Mock::Redis::Set'
            ? 'set'
-           : $type eq 'Mock::Redis::ZSet'
+           : $type eq 'Test::Mock::Redis::ZSet'
              ? 'zset'
              : $type eq 'HASH' 
                ? 'hash'
@@ -300,9 +300,9 @@ sub _stash {
 sub sadd {
     my ( $self, $key, $value ) = @_;
 
-    $self->_stash->{$key} = Mock::Redis::Set->new
+    $self->_stash->{$key} = Test::Mock::Redis::Set->new
         unless blessed $self->_stash->{$key} 
-            && $self->_stash->{$key}->isa( 'Mock::Redis::Set' );
+            && $self->_stash->{$key}->isa( 'Test::Mock::Redis::Set' );
 
     my $return = !exists $self->_stash->{$key}->{$value};
     $self->_stash->{$key}->{$value} = 1;
@@ -345,7 +345,7 @@ sub sinterstore {
     my ( $self, $dest, @keys ) = @_;
 
     $self->_stash->{$dest} = { map { $_ => 1 } $self->sinter(@keys) };
-    bless $self->_stash->{$dest}, 'Mock::Redis::Set';
+    bless $self->_stash->{$dest}, 'Test::Mock::Redis::Set';
     return $self->scard($dest);
 }
 
@@ -669,7 +669,7 @@ automatically be notified of progress on your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Mock::Redis
+    perldoc Test::Mock::Redis
 
 
 You can also look for information at:
@@ -714,13 +714,13 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of Mock::Redis
+1; # End of Test::Mock::Redis
 
-package Mock::Redis::ZSet;
+package Test::Mock::Redis::ZSet;
 sub new { return bless {}, shift }
 1;
 
-package Mock::Redis::Set;
+package Test::Mock::Redis::Set;
 sub new { return bless {}, shift }
 1;
 
