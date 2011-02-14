@@ -5,7 +5,6 @@ use strict;
 
 use Config;
 use Scalar::Util qw/blessed/;
-use Set::Scalar;
 
 =head1 NAME
 
@@ -155,13 +154,15 @@ sub type {
 
     return !$type 
          ? 'string'
-         : $type eq 'Set::Scalar'
+         : $type eq 'Mock::Redis::Set'
            ? 'set'
-           : $type eq 'HASH' 
-             ? 'hash'
-             : $type eq 'ARRAY' 
-               ? 'list'
-               : 'unknown'
+           : $type eq 'Mock::Redis::ZSet'
+             ? 'zset'
+             : $type eq 'HASH' 
+               ? 'hash'
+               : $type eq 'ARRAY' 
+                 ? 'list'
+                 : 'unknown'
     ;
 }
 
@@ -299,50 +300,52 @@ sub _stash {
 sub sadd {
     my ( $self, $key, $value ) = @_;
 
-    $self->_stash->{$key} = Set::Scalar->new
+    $self->_stash->{$key} = Mock::Redis::Set->new
         unless blessed $self->_stash->{$key} 
-            && $self->_stash->{$key}->isa( 'Set::Scalar' );
+            && $self->_stash->{$key}->isa( 'Mock::Redis::Set' );
 
-    my $return = !$self->_stash->{$key}->member("$value");
-    $self->_stash->{$key}->insert("$value");
+    my $return = !exists $self->_stash->{$key}->{$value};
+    $self->_stash->{$key}->{$value} = 1;
     return $return;
 }
 
 sub scard {
     my ( $self, $key ) = @_;
 
-    return scalar $self->_stash->{$key}->members;
+    return scalar CORE::keys %{ $self->_stash->{$key} };
 }
 
 sub sismember {
     my ( $self, $key, $value ) = @_;
 
-    return $self->_stash->{$key}->member("$value");
+    return exists $self->_stash->{$key}->{$value};
 }
 
 sub srem {
     my ( $self, $key, $value ) = @_;
 
-    my $return = $self->_stash->{$key}->member("$value");
-    $self->_stash->{$key}->delete("$value");
-    return $return;
+    my $ret = exists $self->_stash->{$key}->{$value};
+    delete $self->_stash->{$key}->{$value};
+    return $ret;
 }
 
 sub sinter {
-    my ( $self, $key, @keys ) = @_;
+    my ( $self, @keys ) = @_;
 
-    my $r = $self->_stash->{$key};
-    $r = $r->intersection($self->_stash->{$_})
-        for @keys;
+    my $r = {};
 
-    return reverse $r->members;
+    foreach my $key (@keys){
+        $r->{$_}++ for CORE::keys %{ $self->_stash->{$key} };
+    }
+
+    return grep { $r->{$_} >= @keys } CORE::keys %$r;
 }
 
 sub sinterstore {
     my ( $self, $dest, @keys ) = @_;
 
-    $self->_stash->{$dest} = Set::Scalar->new;
-    $self->_stash->{$dest}->insert($self->sinter(@keys));
+    $self->_stash->{$dest} = { map { $_ => 1 } $self->sinter(@keys) };
+    bless $self->_stash->{$dest}, 'Mock::Redis::Set';
     return $self->scard($dest);
 }
 
@@ -695,6 +698,7 @@ L<http://search.cpan.org/dist/Mock-Redis/>
 =head1 ACKNOWLEDGEMENTS
 
 Salvatore Sanfilippo for redis, of course!
+
 Dobrica Pavlinusic & Pedro Melo for Redis.pm
 
 =head1 LICENSE AND COPYRIGHT
@@ -711,3 +715,12 @@ See http://dev.perl.org/licenses/ for more information.
 =cut
 
 1; # End of Mock::Redis
+
+package Mock::Redis::ZSet;
+sub new { return bless {}, shift }
+1;
+
+package Mock::Redis::Set;
+sub new { return bless {}, shift }
+1;
+
