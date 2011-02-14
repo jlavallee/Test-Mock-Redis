@@ -12,7 +12,12 @@ my $builder = Module::Build->new(
         resources => {
             bugtracker => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Test-Mock-Redis',
             repository => 'http://github.com/jlavallee/Test-Mock-Redis/',
-        }
+        },
+        no_index => { package => [ 'Test::Mock::Redis::PossiblyVolitile',
+                                   'Test::Mock::Redis::Set',
+                                   'Test::Mock::Redis::ZSet',
+                                 ],
+                    },
     },
     build_requires => {
         'Test::More' => 0,
