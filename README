@@ -1,4 +1,4 @@
-Mock-Redis
+Test-Mock-Redis
 
 INSTALLATION
 
@@ -14,21 +14,21 @@ SUPPORT AND DOCUMENTATION
 After installing, you can find documentation for this module with the
 perldoc command.
 
-    perldoc Mock::Redis
+    perldoc Test::Mock::Redis
 
 You can also look for information at:
 
     RT, CPAN's request tracker
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Mock-Redis
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Test-Mock-Redis
 
     AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/Mock-Redis
+        http://annocpan.org/dist/Test-Mock-Redis
 
     CPAN Ratings
-        http://cpanratings.perl.org/d/Mock-Redis
+        http://cpanratings.perl.org/d/Test-Mock-Redis
 
     Search CPAN
-        http://search.cpan.org/dist/Mock-Redis/
+        http://search.cpan.org/dist/Test-Mock-Redis/
 
 
 LICENSE AND COPYRIGHT

@@ -1,9 +1,10 @@
 Build.PL
 Changes
+lib/Test/Mock/Redis.pm
 MANIFEST
 README
-lib/Mock/Redis.pm
 t/00-load.t
+t/boilerplate.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t
