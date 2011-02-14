@@ -43,6 +43,7 @@ our %defaults = (
     _quit     => 0,
     _stash    => [ map { {} } (1..16) ],
     _db_index => 0,
+    _up_since => time,
 );
 
 sub new {
@@ -508,7 +509,7 @@ sub info {
         last_save_time             => $self->{_last_save},
         mem_fragmentation_ratio    => '0.11',
         multiplexing_api           => 'kqueue',
-        process_id                 => '68599',
+        process_id                 => $$,
         pubsub_channels            => '0',
         pubsub_patterns            => '0',
         redis_git_dirty            => '0',
@@ -517,8 +518,8 @@ sub info {
         role                       => 'master',
         total_commands_processed   => '84',
         total_connections_received => '14',
-        uptime_in_days             => '20',
-        uptime_in_seconds          => '1748533',
+        uptime_in_days             => (time - $self->{_up_since}) / 60 / 60 / 24,
+        uptime_in_seconds          => time - $self->{_up_since},
         used_memory                => '3918288',
         used_memory_human          => '3.74M',
         vm_enabled                 => '0',
