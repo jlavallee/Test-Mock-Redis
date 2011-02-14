@@ -89,15 +89,43 @@ sub setnx {
     return 0;
 }
 
+sub expire {
+    my ( $self, $key, $ttl ) = @_;
+
+    return $self->expireat($key, time + $ttl);
+}
+
+sub expireat {
+    my ( $self, $key, $when ) = @_;
+
+    return 0 unless exists $self->_stash->{$key};
+    my $value = $self->_stash->{$key};
+
+    $self->_stash->{$key} = Test::Mock::Redis::Volitile->new("$value", $when);
+    return 1;
+}
+
 sub exists {
     my ( $self, $key ) = @_;
     return exists $self->_stash->{$key};
 }
 
+sub _delete_key_if_expired {
+    my ( $self, $key ) = @_;
+
+    delete $self->_stash->{$key}
+        if blessed $self->_stash->{$key} 
+         && $self->_stash->{$key}->isa('Test::Mock::Redis::Volitile')
+         && $self->_stash->{$key}->expired
+    ;
+    return $self; #chainable
+}
+
 sub get {
     my ( $self, $key  ) = @_;
 
-    return $self->_stash->{$key};
+    return $self->_delete_key_if_expired($key)
+                ->_stash->{$key};
 }
 
 sub incr {
@@ -131,13 +159,14 @@ sub decrby {
 sub mget {
     my ( $self, @keys ) = @_;
 
-    return map { $self->_stash->{$_} } @keys;
+    return map { $self->_delete_key_if_expired($_)->_stash->{$_} } @keys;
 }
 
 sub del {
     my ( $self, $key ) = @_;
 
-    my $ret = $self->exists($key);
+    my $ret = $self->_delete_key_if_expired($key)
+                   ->exists($key);
 
     delete $self->_stash->{$key};
 
@@ -727,5 +756,42 @@ sub new { return bless {}, shift }
 
 package Test::Mock::Redis::Set;
 sub new { return bless {}, shift }
+1;
+
+package Test::Mock::Redis::Volitile;
+
+use overload 
+    '""' => \&value,
+    '0+' => \&value,
+;
+
+sub new { 
+    my ( $class, $value, $expires ) = @_;
+    return bless { _value   => $value, 
+                   _expires => $expires
+                 }, $class;
+}
+
+sub expires {
+    my $self = shift;
+    if(@_){
+        $self->{_expires} = $_[0];
+        return $self; #chainable
+    }
+    return $self->{_expires};
+}
+
+sub value { # read only
+    my $self = shift;
+    return $self->expired
+         ? undef
+         : $self->{_value}
+}
+
+sub expired {
+    my $self = shift;
+    return time >= $self->{_expires};
+}
+
 1;
 
