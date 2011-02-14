@@ -20,7 +20,6 @@ my $builder = Module::Build->new(
     requires => {
         'Test::More' => 0,
         'Scalar::Util' => 0,
-        'Set::Scalar' => 1.25,
     },
     add_to_cleanup      => [ 'Mock-Redis-*' ],
     create_makefile_pl => 'traditional',
