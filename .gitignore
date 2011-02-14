@@ -1,4 +1,5 @@
 .*.sw[po]
+*.tar.gz
 blib/
 _build/
 cover_db/
