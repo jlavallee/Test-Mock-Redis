@@ -3,6 +3,7 @@ package Mock::Redis;
 use warnings;
 use strict;
 
+use Config;
 use Scalar::Util qw/blessed/;
 use Set::Scalar;
 
@@ -286,6 +287,7 @@ sub select {
     my ( $self, $index ) = @_;
 
     $self->{_db_index} = $index;
+    return 1;
 }
 
 sub _stash {
@@ -345,6 +347,240 @@ sub sinterstore {
     return $self->scard($dest);
 }
 
+sub hset {
+    my ( $self, $key, $hkey, $value ) = @_;
+
+    $self->_stash->{$key} ||= {};
+
+    my $ret = !exists $self->_stash->{$key}->{$hkey};
+    $self->_stash->{$key}->{$hkey} = "$value";
+    return $ret;
+}
+
+sub hsetnx {
+    my ( $self, $key, $hkey, $value ) = @_;
+
+    $self->_stash->{$key} ||= {};
+
+    return 0 if exists $self->_stash->{$key}->{$hkey};
+
+    $self->_stash->{$key}->{$hkey} = "$value";
+    return 1;
+}
+
+sub hmset {
+    my ( $self, $key, %hash ) = @_;
+
+    $self->_stash->{$key} ||= {};
+
+    foreach my $hkey ( CORE::keys %hash ){
+        $self->hset($key, $hkey, $hash{$hkey});
+    }
+
+    return 1;
+}
+
+sub hget {
+    my ( $self, $key, $hkey ) = @_;
+
+    return $self->_stash->{$key}->{$hkey};
+}
+
+sub hmget {
+    my ( $self, $key, @hkeys ) = @_;
+
+    return map { $self->_stash->{$key}->{$_} } @hkeys;
+}
+
+sub hexists {
+    my ( $self, $key, $hkey ) = @_;
+
+    return exists $self->_stash->{$key}->{$hkey};
+}
+
+sub hdel {
+    my ( $self, $key, $hkey ) = @_;
+
+    my $ret = $self->hexists($key, $hkey);
+    delete $self->_stash->{$key}->{$hkey};
+    return $ret;
+}
+
+sub hincrby {
+    my ( $self, $key, $hkey, $incr ) = @_;
+
+    $self->_stash->{$key}->{$hkey} ||= 0;
+
+    return $self->_stash->{$key}->{$hkey} += $incr;
+}
+
+sub hlen {
+    my ( $self, $key ) = @_;
+
+    return scalar values %{ $self->_stash->{$key} };
+}
+
+sub hkeys {
+    my ( $self, $key ) = @_;
+
+    return CORE::keys %{ $self->_stash->{$key} };
+}
+
+sub hvals {
+    my ( $self, $key ) = @_;
+
+    return CORE::values %{ $self->_stash->{$key} };
+}
+
+sub hgetall {
+    my ( $self, $key ) = @_;
+
+    return %{ $self->_stash->{$key} };
+}
+
+sub move {
+    my ( $self, $key, $to ) = @_;
+
+    return 0 unless !exists $self->_stash($to)->{$key}
+                 &&  exists $self->_stash->{$key}
+    ;
+
+    $self->_stash($to)->{$key} = $self->_stash->{$key};
+    delete $self->_stash->{$key};
+    return 1;
+}
+
+sub flushdb {
+    my $self = shift;
+
+    $self->{_stash}->[$self->{_db_index}] = {}
+}
+
+sub sort {
+    my ( $self, $key, $how ) = @_;
+
+    my $cmp = do
+    { no warnings 'uninitialized';
+      $how =~ /\bALPHA\b/ 
+      ? $how =~ /\bDESC\b/
+        ? sub { $b cmp $a }
+        : sub { $a cmp $b }
+      : $how =~ /\bDESC\b/
+        ? sub { $b <=> $a }
+        : sub { $a <=> $b }
+      ;
+    };
+
+    return sort $cmp @{ $self->_stash->{$key} };
+}
+
+sub save { 
+    my $self = shift;
+    $self->{_last_save} = time;
+    return 1;
+}
+
+sub bgsave { 
+    my $self = shift;
+    return $self->save;
+}
+
+sub lastsave { 
+    my $self = shift;
+    return $self->{_last_save};
+}
+
+sub info {
+    my $self = shift;
+   
+
+    return {
+        arch_bits                  => $Config{use64bitint } ? '64' : '32',
+        bgrewriteaof_in_progress   => '0',
+        bgsave_in_progress         => '0',
+        blocked_clients            => '0',
+        changes_since_last_save    => '0',
+        connected_clients          => '1',
+        connected_slaves           => '0',
+        expired_keys               => '0',
+        hash_max_zipmap_entries    => '64',
+        hash_max_zipmap_value      => '512',
+        last_save_time             => $self->{_last_save},
+        mem_fragmentation_ratio    => '0.11',
+        multiplexing_api           => 'kqueue',
+        process_id                 => '68599',
+        pubsub_channels            => '0',
+        pubsub_patterns            => '0',
+        redis_git_dirty            => '0',
+        redis_git_sha1             => 'da14590b',
+        redis_version              => '2.1.4',
+        role                       => 'master',
+        total_commands_processed   => '84',
+        total_connections_received => '14',
+        uptime_in_days             => '20',
+        uptime_in_seconds          => '1748533',
+        used_memory                => '3918288',
+        used_memory_human          => '3.74M',
+        vm_enabled                 => '0',
+    };
+}
+
+
+=head1 TODO
+
+Not all Redis functionality is implemented.  Pull requests welcome!
+
+=cut
+
+
+sub zadd {
+    my ( $self, $key, $score, $value ) = @_;
+}
+
+sub zscore {
+    my ( $self, $key, $value ) = @_;
+}
+
+sub zincrby {
+    my ( $self, $key, $score, $value ) = @_;
+}
+
+sub zrank {
+    my ( $self, $key, $value ) = @_;
+}
+
+sub zrevrank {
+    my ( $self, $key, $value ) = @_;
+}
+
+sub zrange {
+    my ( $self, $key, $start, $stop ) = @_;
+}
+
+sub zrevrange {
+    my ( $self, $key, $start, $stop ) = @_;
+}
+
+sub zrangebyscore {
+    my ( $self, $key, $start, $stop ) = @_;
+}
+
+sub zcount {
+    my ( $self, $key, $start, $stop ) = @_;
+}
+
+sub zcard {
+    my ( $self, $key, $start, $stop ) = @_;
+}
+
+sub zremrangebyrank {
+    my ( $self, $key, $start, $stop ) = @_;
+}
+
+sub zremrangebyscore {
+    my ( $self, $key, $start, $stop ) = @_;
+}
+
 
 =head1 AUTHOR
 
@@ -388,10 +624,6 @@ L<http://search.cpan.org/dist/Mock-Redis/>
 
 =back
 
-
-=head1 TODO
-
-Not all Redis functionality is implemented.  Pull requests welcome!
 
 =head1 ACKNOWLEDGEMENTS
 
