@@ -18,7 +18,6 @@ Version 0.01
 
 our $VERSION = '0.01';
 
-
 =head1 SYNOPSIS
 
 Test::Mock::Redis can be used in place of Redis for running
@@ -494,7 +493,6 @@ sub lastsave {
 
 sub info {
     my $self = shift;
-   
 
     return {
         arch_bits                  => $Config{use64bitint } ? '64' : '32',
@@ -524,6 +522,12 @@ sub info {
         used_memory                => '3918288',
         used_memory_human          => '3.74M',
         vm_enabled                 => '0',
+        map { 'db'.$_ => sprintf('keys=%d,expires=%d',
+                             scalar CORE::keys %{ $self->_stash($_) },
+                             0,
+                         )
+            } grep { scalar CORE::keys %{ $self->_stash($_) } > 0 }
+                (0..15)
     };
 }
 
