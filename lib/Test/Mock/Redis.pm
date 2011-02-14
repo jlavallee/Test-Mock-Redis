@@ -41,7 +41,9 @@ tests without needing a running redis instance.
 
 our %defaults = (
     _quit     => 0,
-    _stash    => [ map { {} } (1..16) ],
+    _stash    => [ map { tie %$_, 'Test::Mock::Redis::PossiblyVolitile'; $_ }
+                       map { {} } (1..16)
+                 ],
     _db_index => 0,
     _up_since => time,
 );
@@ -99,9 +101,12 @@ sub expireat {
     my ( $self, $key, $when ) = @_;
 
     return 0 unless exists $self->_stash->{$key};
-    my $value = $self->_stash->{$key};
 
-    $self->_stash->{$key} = Test::Mock::Redis::Volitile->new("$value", $when);
+    my $slot = $self->_stash;
+    my $tied = tied(%$slot);
+
+    $tied->expire($key, $when);
+
     return 1;
 }
 
@@ -758,40 +763,40 @@ package Test::Mock::Redis::Set;
 sub new { return bless {}, shift }
 1;
 
-package Test::Mock::Redis::Volitile;
+package Test::Mock::Redis::PossiblyVolitile;
 
-use overload 
-    '""' => \&value,
-    '0+' => \&value,
-;
+use strict; use warnings;
+use Tie::Hash;
+use base qw/Tie::StdHash/;
 
-sub new { 
-    my ( $class, $value, $expires ) = @_;
-    return bless { _value   => $value, 
-                   _expires => $expires
-                 }, $class;
+sub DELETE { 
+    my ( $self, $key ) = @_;
+
+    delete $self->{$key};
 }
 
-sub expires {
-    my $self = shift;
-    if(@_){
-        $self->{_expires} = $_[0];
-        return $self; #chainable
-    }
-    return $self->{_expires};
+sub FETCH {
+    my ( $self, $key ) = @_;
+
+    delete $self->{$key}
+        if $self->{$self->_expires_key($key)}
+           && time >= $self->{$self->_expires_key($key)}
+    ;
+
+    return $self->{$key};
 }
 
-sub value { # read only
-    my $self = shift;
-    return $self->expired
-         ? undef
-         : $self->{_value}
+sub expire {
+    my ( $self, $key, $time ) = @_;
+
+    $self->{$self->_expires_key($key)} = $time;
 }
 
-sub expired {
-    my $self = shift;
-    return time >= $self->{_expires};
+sub _expires_key {
+    my ( $self, $key ) = @_;
+    return sprintf('__%s__%s', ref $self, $key);
 }
+
 
 1;
 
