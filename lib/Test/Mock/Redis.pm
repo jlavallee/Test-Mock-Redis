@@ -725,12 +725,15 @@ sub zremrangebyscore {
 
 Not all Redis functionality is implemented.  Pull requests welcome!
 
-=cut
-
 
 =head1 AUTHOR
 
 Jeff Lavallee, C<< <jeff at zeroclue.com> >>
+
+=head1 SEE ALSO
+
+The real Redis.pm client whose interface this module mimics: L<http://search.cpan.org/dist/Redis>
+
 
 =head1 BUGS
 
@@ -738,10 +741,6 @@ Please report any bugs or feature requests to C<bug-mock-redis at rt.cpan.org>, 
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Mock-Redis>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
-
-=head1 SEE ALSO
-
-The real Redis.pm client whose interface this module mimics: L<http://search.cpan.org/dist/Redis>
 
 
 =head1 SUPPORT
