@@ -739,6 +739,9 @@ the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Mock-Redis
 automatically be notified of progress on your bug as I make changes.
 
 
+=head1 SEE ALSO
+
+The real Redis.pm client whose interface this module mimics: L<http://search.cpan.org/dist/Redis>
 
 
 =head1 SUPPORT
