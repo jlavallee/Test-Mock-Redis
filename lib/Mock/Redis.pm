@@ -22,9 +22,8 @@ our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
+Mock::Redis can be used in place of Redis for running
+tests without needing a running redis instance.
 
     use Mock::Redis;
 
