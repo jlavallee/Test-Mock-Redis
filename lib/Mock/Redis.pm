@@ -27,15 +27,17 @@ Perhaps a little code snippet.
 
     use Mock::Redis;
 
-    my $foo = Mock::Redis->new();
+    my $redis = Mock::Redis->new(server => 'whatever');
     ...
+    
 
 =head1 SUBROUTINES/METHODS
 
 =head2 new
 
-    Create a new Mock::Redis object.  Can be passed a hashref 
-    that determines the contents of the mock Redis database.
+    Create a new Mock::Redis object. 
+
+    It can be used in place of a Redis object for unit testing.
 
 =cut
 
@@ -387,8 +389,14 @@ L<http://search.cpan.org/dist/Mock-Redis/>
 =back
 
 
+=head1 TODO
+
+Not all Redis functionality is implemented.  Pull requests welcome!
+
 =head1 ACKNOWLEDGEMENTS
 
+Salvatore Sanfilippo for redis, of course!
+Dobrica Pavlinusic & Pedro Melo for Redis.pm
 
 =head1 LICENSE AND COPYRIGHT
 
