@@ -27,6 +27,15 @@ tests without needing a running redis instance.
 
     my $redis = Test::Mock::Redis->new(server => 'whatever');
     ...
+
+    $redis->set($key, 'some value');
+
+    $redis->get($key);
+
+This module is designed to function as a drop in replacement for
+Redis.pm for testing purposes.
+
+See perldoc Redis and the redis documentation at L<http://redis.io>
     
 
 =head1 SUBROUTINES/METHODS
@@ -36,6 +45,8 @@ tests without needing a running redis instance.
     Create a new Test::Mock::Redis object. 
 
     It can be used in place of a Redis object for unit testing.
+
+    If you pass the server to "connect" to, it will be ignored.
 
 =cut
 
