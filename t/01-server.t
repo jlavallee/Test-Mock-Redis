@@ -27,7 +27,7 @@ o   INFO
 x   LASTSAVE
     MONITOR
 x   SAVE
-    SHUTDOWN
+o   SHUTDOWN
     SLAVEOF
     SYNC
 =cut
