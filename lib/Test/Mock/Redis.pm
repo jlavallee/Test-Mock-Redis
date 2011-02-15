@@ -144,7 +144,7 @@ sub persist {
 sub ttl {
     my ( $self, $key, $ttl ) = @_;
 
-    return 0 unless exists $self->_stash->{$key};
+    return -1 unless exists $self->_stash->{$key};
 
     my $slot = $self->_stash;
     my $tied = tied(%$slot);
@@ -914,7 +914,7 @@ sub persist {
 sub ttl {
     my ( $self, $key ) = @_;
 
-    return 0 unless exists $expires->{$self->_expires_key($key)};
+    return -1 unless exists $expires->{$self->_expires_key($key)};
     return $expires->{$self->_expires_key($key)} - time;
 }
 

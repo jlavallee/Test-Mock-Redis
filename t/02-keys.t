@@ -4,21 +4,25 @@ use Test::More;
 use Test::Mock::Redis;
 
 =pod
-    DEL
-    EXISTS
-    KEYS
-    MOVE
-    RANDOMKEY
-    RENAME
-    RENAMENX
-    TTL
-    TYPE
+x   DEL
+x   EXISTS
+o   KEYS   <-- could use a lot more tests, doesn't escape meta-chars
+x   MOVE
+o   RANDOMKEY
+x   RENAME
+x   RENAMENX
+x   TTL
+o   TYPE   <-- only 1 type tested here
     SORT   <-- TODO, requires list/set/sorted set
 =cut
 
 my $r = Test::Mock::Redis->new;
 
+ok(!$r->exists('foo'), 'exists returns false for key that doesn\'t exist');
+
 ok($r->set('foo', 'foobar'), 'can set foo');
+
+ok($r->exists('foo'), 'exists returns true for key that exists');
 
 is($r->randomkey, 'foo', 'randomkey returns foo, because it\'s all we have');
 
@@ -26,6 +30,10 @@ ok($r->set('bar', 'barfoo'), 'can set bar');
 ok($r->set('baz', 'bazbaz'), 'can set baz');
 
 is_deeply([ $r->keys('ba*') ], [qw/bar baz/], 'keys ba* matches bar and baz');
+is_deeply([ $r->keys('ba?') ], [qw/bar baz/], 'keys ba? matches bar and baz');
+is_deeply([ $r->keys('?a?') ], [qw/bar baz/], 'keys ?a? matches bar and baz');
+is_deeply([ $r->keys('ba[rz]') ], [qw/bar baz/], 'keys ba[rz] matches bar and baz');
+# TODO: more keys() tests
 
 ok(! $r->del('quizlebub'), 'del on a key that doesn\'t exist returns false');
 ok($r->del('foo'), 'del on a key that exists returns true');
@@ -47,6 +55,9 @@ $r->set('foo', 'foobar');
 ok(! $r->renamenx('newfoo', 'foo'), 'renamenx returns false when destination key exists');
 ok($r->renamenx('newfoo', 'newfoo2'), 'renamenx returns true on success');
 is( $r->get('newfoo2'), 'foobar', 'renamenx worked');
+
+is($r->ttl('newfoo2'), -1, 'ttl for key with no timeout is -1');
+is($r->ttl('quizlebub'), -1, 'ttl for key that doesn\'t exist is -1');
 
 $r->expire('newfoo2', 3);
 ok($r->ttl('newfoo2') >= 2, 'ttl for newfoo2 is at least 2');
