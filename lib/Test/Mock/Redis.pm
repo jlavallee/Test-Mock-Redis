@@ -171,22 +171,10 @@ sub exists {
     return exists $self->_stash->{$key};
 }
 
-sub _delete_key_if_expired {
-    my ( $self, $key ) = @_;
-
-    delete $self->_stash->{$key}
-        if blessed $self->_stash->{$key} 
-         && $self->_stash->{$key}->isa('Test::Mock::Redis::Volitile')
-         && $self->_stash->{$key}->expired
-    ;
-    return $self; #chainable
-}
-
 sub get {
     my ( $self, $key  ) = @_;
 
-    return $self->_delete_key_if_expired($key)
-                ->_stash->{$key};
+    return $self->_stash->{$key};
 }
 
 sub append {
@@ -247,7 +235,7 @@ sub decrby {
 sub mget {
     my ( $self, @keys ) = @_;
 
-    return map { $self->_delete_key_if_expired($_)->_stash->{$_} } @keys;
+    return map { $self->_stash->{$_} } @keys;
 }
 
 sub mset {
@@ -271,8 +259,7 @@ sub msetnx {
 sub del {
     my ( $self, $key ) = @_;
 
-    my $ret = $self->_delete_key_if_expired($key)
-                   ->exists($key);
+    my $ret = $self->exists($key);
 
     delete $self->_stash->{$key};
 
