@@ -39,6 +39,8 @@ is($r->get('foo'), 'foobar', 'can get foo');
 is($r->get('bar'), 'barfoo', 'can get bar');
 is($r->get('baz'), 'bazbaz', 'can get baz');
 
+is($r->type('foo'), 'string', 'type of foo is string');
+
 ok(! $r->setnx('foo', 'foobar'), 'setnx returns false for existing key');
 ok($r->setnx('qux', 'quxqux'),   'setnx returns true for new key');
 
