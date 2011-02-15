@@ -738,7 +738,7 @@ The real Redis.pm client whose interface this module mimics: L<http://search.cpa
 =head1 BUGS
 
 Please report any bugs or feature requests to C<bug-mock-redis at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Mock-Redis>.  I will be notified, and then you'll
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-Mock-Redis>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
 
@@ -756,19 +756,19 @@ You can also look for information at:
 
 =item * RT: CPAN's request tracker
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Mock-Redis>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Test-Mock-Redis>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
-L<http://annocpan.org/dist/Mock-Redis>
+L<http://annocpan.org/dist/Test-Mock-Redis>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/Mock-Redis>
+L<http://cpanratings.perl.org/d/Test-Mock-Redis>
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/Mock-Redis/>
+L<http://search.cpan.org/dist/Test-Mock-Redis/>
 
 =back
 
