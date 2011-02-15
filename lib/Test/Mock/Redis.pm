@@ -799,9 +799,26 @@ sub zremrangebyscore {
 
 =head1 TODO
 
-Not all Redis functionality is implemented.  Pull requests welcome!
+Lots!
 
-Add methods to inspect how often keys were accessed
+Not all Redis functionality is implemented.  The test files that output "TODO" are still to be done.
+
+The top of all test files [except 01-basic.t] has the list of commands tested or to-be tested in the file.
+
+Those marked with an "x" are pretty well-tested.
+Those marked with an "o" need help.
+Those that are unmarked have no tests, or are un-implemented.  For example:
+
+x   AUTH          <--- has some tests
+x   SET
+o   KEYS          <--- only partially tested and/or implemented
+    ZINTERSTORE   <--- not tested (or maybe not implemented)
+
+
+
+Beyond that, it would be neat to add methods to inspect how often keys were accessed and get other information that
+allows the module user to confirm that their code interacted with redis (or Test::Mock::Redis) as they expected.
+
 
 =head1 AUTHOR
 
