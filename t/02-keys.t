@@ -19,6 +19,7 @@ use Test::Mock::Redis;
 my $r = Test::Mock::Redis->new;
 
 ok(! $r->exists('foo'), 'foo does not exist yet');
+is($r->get('foo'), undef, 'get on a key that doesn\'t exist returns undef');
 ok($r->set('foo', 'foobar'), 'can set foo');
 
 is($r->randomkey, 'foo', 'randomkey returns foo, because it\'s all we have');
