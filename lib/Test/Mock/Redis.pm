@@ -50,11 +50,16 @@ See perldoc Redis and the redis documentation at L<http://redis.io>
 
 =cut
 
+sub _new_db {
+    tie my %hash, 'Test::Mock::Redis::PossiblyVolitile'; 
+    return \%hash;
+}
+
+my $NUM_DBS = 16;
+
 our %defaults = (
     _quit     => 0,
-    _stash    => [ map { tie %$_, 'Test::Mock::Redis::PossiblyVolitile'; $_ }
-                       map { {} } (1..16)
-                 ],
+    _stash    => [ map { _new_db } (1..$NUM_DBS) ],
     _db_index => 0,
     _up_since => time,
 );
@@ -70,8 +75,7 @@ sub new {
 sub ping {
     my $self = shift;
 
-    die 'Not connected to any server ' if $self->{_quit};
-    return 'PONG';
+    return !$self->{_quit};
 }
 
 sub auth {
@@ -592,7 +596,13 @@ sub move {
 sub flushdb {
     my $self = shift;
 
-    $self->{_stash}->[$self->{_db_index}] = {}
+    $self->{_stash}->[$self->{_db_index}] = _new_db;
+}
+
+sub flushall {
+    my $self = shift;
+
+    $self->{_stash} = [ map { _new_db }(1..$NUM_DBS) ];
 }
 
 sub sort {
