@@ -4,10 +4,10 @@ use Test::More;
 use Test::Mock::Redis;
 
 =pod
-    SETEX
-    EXPIRE
-    EXPIREAT
-    PERSIST
+x   SETEX
+x   EXPIRE
+x   EXPIREAT
+x   PERSIST
 =cut
 
 my $r = Test::Mock::Redis->new;
@@ -37,7 +37,9 @@ sleep 1;
 ok(! $r->exists('foo'), 'foo expired');
 
 ok($r->setex('foo', 'foobar', 2), 'set foo again returns a true value');
-ok($r->persist('foo'));
+ok($r->persist('foo'), 'persist for a key that exists returns true');
+
+ok(! $r->persist('quizlebub'), 'persist returns false for a key that doesn\'t exist');
 
 sleep 2;
 
