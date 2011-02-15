@@ -95,11 +95,11 @@ sub set {
 sub setnx {
     my ( $self, $key, $value ) = @_;
 
-    unless($self->exists($key)){
-        $self->_stash->{$key} = "$value";
-        return 1;
-    }
-    return 0;
+    return 0 if $self->exists($key);
+
+    $self->_stash->{$key} = "$value";
+
+    return 1;
 }
 
 sub setex {
@@ -175,6 +175,31 @@ sub get {
                 ->_stash->{$key};
 }
 
+sub append {
+    my ( $self, $key, $value ) = @_;
+
+    $self->_stash->{$key} .= $value;
+
+    return $self->strlen($key);
+}
+
+sub strlen {
+    my ( $self, $key ) = @_;
+    # TODO: do we need byte length?
+    return length $self->_stash->{$key};
+}
+
+sub getset {
+    my ( $self, $key, $value ) = @_;
+
+    #TODO: should return error when original value isn't a string
+    my $old_value = $self->_stash->{$key};
+
+    $self->set($key, $value);
+
+    return $old_value;
+}
+
 sub incr {
     my ( $self, $key  ) = @_;
 
@@ -200,6 +225,8 @@ sub decr {
 sub decrby {
     my ( $self, $key, $decr ) = @_;
 
+    $self->_stash->{$key} ||= 0;
+
     return $self->_stash->{$key} -= $decr;
 }
 
@@ -207,6 +234,24 @@ sub mget {
     my ( $self, @keys ) = @_;
 
     return map { $self->_delete_key_if_expired($_)->_stash->{$_} } @keys;
+}
+
+sub mset {
+    my ( $self, %things ) = @_;
+
+    @{ $self->_stash }{keys %things} = (values %things);
+
+    return 1;
+}
+
+sub msetnx {
+    my ( $self, %things ) = @_;
+
+    $self->exists($_) && return 0 for keys %things;
+
+    @{ $self->_stash }{keys %things} = (values %things);
+
+    return 1;
 }
 
 sub del {
