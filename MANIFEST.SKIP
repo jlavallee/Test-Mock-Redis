@@ -1,3 +1,4 @@
+^dump.rdb$
 ^ignore\.txt$
 
 #!start included /usr/local/lib/perl5/5.12.1/ExtUtils/MANIFEST.SKIP
