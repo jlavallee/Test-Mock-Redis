@@ -19,20 +19,21 @@ ok(! $r->expire('quizlebub', 1), 'expire on a key that doesn\'t exist returns fa
 ok($r->expire('bar', 1), 'expire on a key that exists returns true');
 
 sleep 1;
-is($r->get('bar'), undef, 'bar expired');
+
+ok(! $r->exists('bar'), 'bar expired');
 
 ok(! $r->expireat('quizlebub', time + 1), 'expireat on a key that doesn\'t exist returns false');
 ok($r->expireat('baz', time + 1), 'expireat on a key that exists returns true');
 
 sleep 1;
 
-is($r->get('baz'), undef, 'baz expired');
+ok(! $r->exists('baz'), 'baz expired');
 
 ok($r->setex('foo', 'foobar', 1), 'set foo again returns a true value');
 
 sleep 1;
 
-is($r->get('foo'), undef, 'foo expired');
+ok(! $r->exists('foo'), 'foo expired');
 
 ok($r->setex('foo', 'foobar', 2), 'set foo again returns a true value');
 ok($r->persist('foo'));

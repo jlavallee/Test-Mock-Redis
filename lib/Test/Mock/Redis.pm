@@ -105,13 +105,27 @@ sub setnx {
 sub setex {
     my ( $self, $key, $value, $ttl ) = @_;
     $self->set($key, $value);
-    return $self->expire($key, $ttl);
+    $self->expire($key, $ttl);
+    return 1;
 }
 
 sub expire {
     my ( $self, $key, $ttl ) = @_;
 
     return $self->expireat($key, time + $ttl);
+}
+
+sub expireat {
+    my ( $self, $key, $when ) = @_;
+
+    return 0 unless exists $self->_stash->{$key};
+
+    my $slot = $self->_stash;
+    my $tied = tied(%$slot);
+
+    $tied->expire($key, $when);
+
+    return 1;
 }
 
 sub persist {
@@ -136,19 +150,6 @@ sub ttl {
     my $tied = tied(%$slot);
 
     return $tied->ttl($key);
-}
-
-sub expireat {
-    my ( $self, $key, $when ) = @_;
-
-    return 0 unless exists $self->_stash->{$key};
-
-    my $slot = $self->_stash;
-    my $tied = tied(%$slot);
-
-    $tied->expire($key, $when);
-
-    return 1;
 }
 
 sub exists {
@@ -831,12 +832,26 @@ my $expires;
 sub FETCH {
     my ( $self, $key ) = @_;
 
-    delete $self->{$key}
-        if exists $expires->{$self->_expires_key($key)}
-           && time >= $expires->{$self->_expires_key($key)}
-    ;
+    $self->_delete_if_expired($key);
 
     return $self->{$key};
+}
+
+sub EXISTS {
+    my ( $self, $key ) = @_;
+
+    $self->_delete_if_expired($key);
+
+    return exists $self->{$key};
+}
+
+sub _delete_if_expired {
+    my ( $self, $key ) = @_;
+    if(exists $expires->{$self->_expires_key($key)}
+       && time >= $expires->{$self->_expires_key($key)}){
+        delete $self->{$key};
+        delete $expires->{$self->_expires_key($key)};
+    }
 }
 
 sub expire {
