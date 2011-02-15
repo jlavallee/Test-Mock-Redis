@@ -6,23 +6,23 @@ use Test::Mock::Redis;
 =pod
     DEL
     EXISTS
-    EXPIRE
-    EXPIREAT
     KEYS
     MOVE
-    PERSIST
     RANDOMKEY
     RENAME
     RENAMENX
-    SORT   <-- TODO, requires list/set/sorted set
     TTL
     TYPE
+    SORT   <-- TODO, requires list/set/sorted set
 =cut
 
 my $r = Test::Mock::Redis->new;
 
 ok(! $r->exists('foo'), 'foo does not exist yet');
 ok($r->set('foo', 'foobar'), 'can set foo');
+
+is($r->randomkey, 'foo', 'randomkey returns foo, because it\'s all we have');
+
 ok($r->set('bar', 'barfoo'), 'can set bar');
 ok($r->set('baz', 'bazbaz'), 'can set baz');
 
@@ -33,40 +33,11 @@ ok($r->del('foo'), 'del on a key that exists returns true');
 
 is($r->get('bar'), 'barfoo', 'get returns correct value');
 
-ok(! $r->expire('quizlebub', 1), 'expire on a key that doesn\'t exist returns false');
-ok($r->expire('bar', 1), 'expire on a key that exists returns true');
-
-sleep 1;
-is($r->get('bar'), undef, 'bar expired');
-
-ok(! $r->expireat('quizlebub', time + 1), 'expireat on a key that doesn\'t exist returns false');
-ok($r->expireat('baz', time + 1), 'expireat on a key that exists returns true');
-
-sleep 1;
-
-is($r->get('baz'), undef, 'baz expired');
-
-ok($r->setex('foo', 'foobar', 1), 'set foo again returns a true value');
-
-sleep 1;
-
-is($r->get('foo'), undef, 'foo expired');
-
-ok($r->setex('foo', 'foobar', 2), 'set foo again returns a true value');
-ok($r->persist('foo'));
-
-sleep 2;
-
-is($r->get('foo'), 'foobar', 'foo persisted');
-
-is($r->randomkey, 'foo', 'randomkey returns foo, because it\'s all we have');
-
-my %stuff = ( icky => 'poo', blecky => 'shoe' );
-$r->set($_, $stuff{$_}) for keys %stuff;
+ok($r->set('foo', 'foobar'), 'can set foo again');
 
 my $rand = $r->randomkey;
 
-ok(grep { $_ eq $rand } qw/icky foo blecky/, 'random returned one of our keys');
+ok(grep { $_ eq $rand } qw/foo bar baz/, 'random returned one of our keys');
 
 ok(! $r->rename('foo', 'foo'), 'rename with identical source and dest returns false');
 ok(! $r->rename('quizlebub', 'foo'), 'rename with source that doesn\'t exist returns false');
@@ -82,6 +53,15 @@ $r->expire('newfoo2', 3);
 ok($r->ttl('newfoo2') >= 2, 'ttl for newfoo2 is at least 2');
 
 is($r->type('foo'), 'string', 'type works for simple key/value');
+
+ok($r->move('foo', 1), 'move returns true on success');
+ok(! $r->get('foo'), 'move moved foo');
+ok(! $r->move('foo', 1), 'move returns false when key does not exist in source');
+ok($r->select(1), 'select returns true on success');
+ok($r->exists('foo'), 'move moved foo and exists found it');
+ok($r->select(0), 'select returns true on success');
+$r->set('foo', 'foobar');  # put it back in db0
+ok(! $r->move('foo', 1), 'move returns false when key already exists in destination');
 
 
 done_testing();
