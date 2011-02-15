@@ -70,7 +70,16 @@ sub new {
 sub ping {
     my $self = shift;
 
-    return !$self->{_quit};
+    die 'Not connected to any server ' if $self->{_quit};
+    return 'PONG';
+}
+
+sub auth {
+    my $self = shift;
+
+    die '[auth] ERR wrong number of arguments for \'auth\' command' unless @_;
+
+    return 1;
 }
 
 sub quit {
