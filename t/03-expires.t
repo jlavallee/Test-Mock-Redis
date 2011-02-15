@@ -4,6 +4,7 @@ use Test::More;
 use Test::Mock::Redis;
 
 =pod
+    SETEX
     EXPIRE
     EXPIREAT
     PERSIST
