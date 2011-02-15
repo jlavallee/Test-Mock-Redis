@@ -429,10 +429,7 @@ sub _stash {
 sub sadd {
     my ( $self, $key, $value ) = @_;
 
-    $self->_stash->{$key} = Test::Mock::Redis::Set->new
-        unless blessed $self->_stash->{$key} 
-            && $self->_stash->{$key}->isa( 'Test::Mock::Redis::Set' );
-
+    $self->_make_set($key);
     my $return = !exists $self->_stash->{$key}->{$value};
     $self->_stash->{$key}->{$value} = 1;
     return $return;
@@ -481,7 +478,7 @@ sub sinterstore {
 sub hset {
     my ( $self, $key, $hkey, $value ) = @_;
 
-    $self->_stash->{$key} ||= {};
+    $self->_make_hash($key);
 
     my $ret = !exists $self->_stash->{$key}->{$hkey};
     $self->_stash->{$key}->{$hkey} = "$value";
@@ -491,9 +488,9 @@ sub hset {
 sub hsetnx {
     my ( $self, $key, $hkey, $value ) = @_;
 
-    $self->_stash->{$key} ||= {};
-
     return 0 if exists $self->_stash->{$key}->{$hkey};
+
+    $self->_make_hash($key);
 
     $self->_stash->{$key}->{$hkey} = "$value";
     return 1;
@@ -502,7 +499,7 @@ sub hsetnx {
 sub hmset {
     my ( $self, $key, %hash ) = @_;
 
-    $self->_stash->{$key} ||= {};
+    $self->_make_hash($key);
 
     foreach my $hkey ( CORE::keys %hash ){
         $self->hset($key, $hkey, $hash{$hkey});
@@ -679,12 +676,13 @@ sub _expires_count_for_db {
 sub zadd {
     my ( $self, $key, $score, $value ) = @_;
 
-    $self->_stash->{$key} ||= {};
+    $self->_make_zset($key);
 
     my $ret = !exists $self->_stash->{$key}->{$value};
     $self->_stash->{$key}->{$value} = $score;
     return $ret;
 }
+
 
 sub zscore {
     my ( $self, $key, $value ) = @_;
@@ -883,7 +881,36 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
+
+sub _make_hash {
+    my ( $self, $key ) = @_;
+
+    $self->_stash->{$key} = Test::Mock::Redis::Hash->new
+        unless blessed $self->_stash->{$key}
+            && $self->_stash->{$key}->isa('Test::Mock::Redis::Hash') ;
+}
+
+sub _make_zset {
+    my ( $self, $key ) = @_;
+
+    $self->_stash->{$key} = Test::Mock::Redis::ZSet->new
+        unless blessed $self->_stash->{$key}
+            && $self->_stash->{$key}->isa('Test::Mock::Redis::ZSet') ;
+}
+
+sub _make_set {
+    my ( $self, $key ) = @_;
+    $self->_stash->{$key} = Test::Mock::Redis::Set->new
+        unless blessed $self->_stash->{$key} 
+            && $self->_stash->{$key}->isa( 'Test::Mock::Redis::Set' );
+}
+
+
 1; # End of Test::Mock::Redis
+
+package Test::Mock::Redis::Hash;
+sub new { return bless {}, shift }
+1;
 
 package Test::Mock::Redis::ZSet;
 sub new { return bless {}, shift }
