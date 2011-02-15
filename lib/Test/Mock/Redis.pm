@@ -725,6 +725,7 @@ sub zremrangebyscore {
 
 Not all Redis functionality is implemented.  Pull requests welcome!
 
+Add methods to inspect how often keys were accessed
 
 =head1 AUTHOR
 
