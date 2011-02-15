@@ -23,10 +23,10 @@ o   SELECT  <-- TODO: complain about invalid values?
     DEBUG SEGFAULT
 x   FLUSHALL
 x   FLUSHDB
-    INFO
-    LASTSAVE
+o   INFO
+x   LASTSAVE
     MONITOR
-    SAVE
+x   SAVE
     SHUTDOWN
     SLAVEOF
     SYNC
@@ -45,10 +45,6 @@ like($@, qr/^\Q[auth] ERR wrong number of arguments for 'auth' command\E/, 'auth
 
 ok($r->auth('foo'), 'auth with anything else returns true');
 
-ok($r->quit, 'quit returns true');
-ok($r->quit, '...even if we call it again');
-
-ok(! $r->ping, 'ping returns false after we quit');
 
 for(0..15){
     $r->select($_);
@@ -108,10 +104,25 @@ $r->setex("volitile-key-$_", 'some value', 15) for (1..5);
 
 {
     my $info = $r->info;
-    is($info->{'db0'}, 'keys=6,expires=5', "db0 info now has six keys and five expire");
+    is($info->{'db0'}, 'keys=6,expires=5', 'db0 info now has six keys and five expire');
 }
 
 
+
+ok($r->quit, 'quit returns true');
+ok($r->quit, '...even if we call it again');
+
+ok(! $r->ping, 'ping returns false after we quit');
+
+{
+    my $r = Test::Mock::Redis->new;
+
+    ok($r->ping, 'we can ping our new mock redis client');
+
+    $r->shutdown;  # doesn't return anything
+
+    ok(! $r->ping, 'ping returns false after we shutdown');
+}
 
 
 done_testing();
