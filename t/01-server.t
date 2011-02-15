@@ -21,8 +21,8 @@ o   SELECT  <-- TODO: complain about invalid values?
     DBSIZE
     DEBUG OBJECT
     DEBUG SEGFAULT
-    FLUSHALL
-    FLUSHDB
+x   FLUSHALL
+x   FLUSHDB
     INFO
     LASTSAVE
     MONITOR
@@ -81,6 +81,37 @@ for my $flush_db (0..15){
         ok($r->exists('foo'), "foo not flushed from db$_");
     }
 }
+
+$r->select(0);  # go back to db0
+
+like($r->lastsave, qr/^\d+$/, 'lastsave returns digits');
+
+ok($r->save, 'save returns true');
+like($r->lastsave, qr/^\d+$/, 'lastsave returns digits');
+
+{
+    my $info = $r->info;
+    is(ref $info, 'HASH', 'info returned a hash');
+
+    #use Data::Dumper; diag Dumper $info;
+
+    like($info->{last_save_time}, qr/^\d+$/, 'last save time is some digits');
+
+    for(0..14){
+        is($info->{"db$_"}, 'keys=1,expires=0', "db$_ info is correct");
+    }
+    # db15 was left with nothing in it, since it was the last one flushed
+    is($info->{"db15"}, undef, 'info returns no data about databases with no keys');
+}
+
+$r->setex("volitile-key-$_", 'some value', 15) for (1..5);
+
+{
+    my $info = $r->info;
+    is($info->{'db0'}, 'keys=6,expires=5', "db0 info now has six keys and five expire");
+}
+
+
 
 
 done_testing();

@@ -58,10 +58,11 @@ sub _new_db {
 my $NUM_DBS = 16;
 
 our %defaults = (
-    _quit     => 0,
-    _stash    => [ map { _new_db } (1..$NUM_DBS) ],
-    _db_index => 0,
-    _up_since => time,
+    _quit      => 0,
+    _stash     => [ map { _new_db } (1..$NUM_DBS) ],
+    _db_index  => 0,
+    _up_since  => time,
+    _last_save => time,
 );
 
 sub new {
@@ -672,11 +673,20 @@ sub info {
         vm_enabled                 => '0',
         map { 'db'.$_ => sprintf('keys=%d,expires=%d',
                              scalar CORE::keys %{ $self->_stash($_) },
-                             0,
+                             $self->_expires_count_for_db($_),
                          )
             } grep { scalar CORE::keys %{ $self->_stash($_) } > 0 }
                 (0..15)
     };
+}
+
+sub _expires_count_for_db {
+    my ( $self, $db_index ) = @_;
+
+    my $slot = $self->_stash($db_index);
+    my $tied = tied(%$slot);
+
+    $tied->expire_count;
 }
 
 sub zadd {
@@ -928,35 +938,37 @@ sub EXISTS {
 
 sub _delete_if_expired {
     my ( $self, $key ) = @_;
-    if(exists $expires->{$self->_expires_key($key)}
-       && time >= $expires->{$self->_expires_key($key)}){
+    if(exists $expires->{$self}->{$key}
+       && time >= $expires->{$self}->{$key}){
         delete $self->{$key};
-        delete $expires->{$self->_expires_key($key)};
+        delete $expires->{$self}->{$key};
     }
 }
 
 sub expire {
     my ( $self, $key, $time ) = @_;
 
-    $expires->{$self->_expires_key($key)} = $time;
+    $expires->{$self}->{$key} = $time;
+}
+
+sub expire_count {
+    my ( $self ) = @_;
+
+    # really, we should probably only count keys that haven't expired
+    scalar keys %{ $expires->{$self} };
 }
 
 sub persist {
     my ( $self, $key, $time ) = @_;
 
-    delete $expires->{$self->_expires_key($key)};
+    delete $expires->{$self}->{$key};
 }
 
 sub ttl {
     my ( $self, $key ) = @_;
 
-    return -1 unless exists $expires->{$self->_expires_key($key)};
-    return $expires->{$self->_expires_key($key)} - time;
-}
-
-sub _expires_key {
-    my ( $self, $key ) = @_;
-    return sprintf('__%s__%s', ref $self, $key);
+    return -1 unless exists $expires->{$self}->{$key};
+    return $expires->{$self}->{$key} - time;
 }
 
 
