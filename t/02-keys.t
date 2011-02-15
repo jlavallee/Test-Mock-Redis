@@ -20,13 +20,13 @@ o   TYPE   <-- only 1 type tested here
 
 my $r = Test::Mock::Redis->new;
 
-ok(!$r->exists('foo'), 'exists returns false for key that doesn\'t exist');
+ok(!$r->exists('foo'), "exists returns false for key that doesn't exist");
 
 ok($r->set('foo', 'foobar'), 'can set foo');
 
 ok($r->exists('foo'), 'exists returns true for key that exists');
 
-is($r->randomkey, 'foo', 'randomkey returns foo, because it\'s all we have');
+is($r->randomkey, 'foo', "randomkey returns foo, because it's all we have");
 
 ok($r->set('bar', 'barfoo'), 'can set bar');
 ok($r->set('baz', 'bazbaz'), 'can set baz');
@@ -37,7 +37,7 @@ is_deeply([ $r->keys('?a?') ], [qw/bar baz/], 'keys ?a? matches bar and baz');
 is_deeply([ $r->keys('ba[rz]') ], [qw/bar baz/], 'keys ba[rz] matches bar and baz');
 # TODO: more keys() tests
 
-ok(! $r->del('quizlebub'), 'del on a key that doesn\'t exist returns false');
+ok(! $r->del('quizlebub'), "del on a key that doesn't exist returns false");
 ok($r->del('foo'), 'del on a key that exists returns true');
 
 is($r->get('bar'), 'barfoo', 'get returns correct value');
@@ -49,7 +49,7 @@ my $rand = $r->randomkey;
 ok(grep { $_ eq $rand } qw/foo bar baz/, 'random returned one of our keys');
 
 ok(! $r->rename('foo', 'foo'), 'rename with identical source and dest returns false');
-ok(! $r->rename('quizlebub', 'foo'), 'rename with source that doesn\'t exist returns false');
+ok(! $r->rename('quizlebub', 'foo'), "rename with source that doesn't exist returns false");
 ok($r->rename('foo', 'newfoo'), 'rename returns true on success');
 is( $r->get('newfoo'), 'foobar', 'rename worked');
 
@@ -59,7 +59,7 @@ ok($r->renamenx('newfoo', 'newfoo2'), 'renamenx returns true on success');
 is( $r->get('newfoo2'), 'foobar', 'renamenx worked');
 
 is($r->ttl('newfoo2'), -1, 'ttl for key with no timeout is -1');
-is($r->ttl('quizlebub'), -1, 'ttl for key that doesn\'t exist is -1');
+is($r->ttl('quizlebub'), -1, "ttl for key that doesn't exist is -1");
 
 $r->expire('newfoo2', 3);
 ok($r->ttl('newfoo2') >= 2, 'ttl for newfoo2 is at least 2');

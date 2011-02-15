@@ -18,14 +18,14 @@ ok($r->set('foo', 'foobar'), 'can set foo');
 ok($r->set('bar', 'barfoo'), 'can set bar');
 ok($r->set('baz', 'bazbaz'), 'can set baz');
 
-ok(! $r->expire('quizlebub', 1), 'expire on a key that doesn\'t exist returns false');
+ok(! $r->expire('quizlebub', 1), "expire on a key that doesn't exist returns false");
 ok($r->expire('bar', 1), 'expire on a key that exists returns true');
 
 sleep 1;
 
 ok(! $r->exists('bar'), 'bar expired');
 
-ok(! $r->expireat('quizlebub', time + 1), 'expireat on a key that doesn\'t exist returns false');
+ok(! $r->expireat('quizlebub', time + 1), "expireat on a key that doesn't exist returns false");
 ok($r->expireat('baz', time + 1), 'expireat on a key that exists returns true');
 
 sleep 1;
@@ -41,7 +41,7 @@ ok(! $r->exists('foo'), 'foo expired');
 ok($r->setex('foo', 'foobar', 2), 'set foo again returns a true value');
 ok($r->persist('foo'), 'persist for a key that exists returns true');
 
-ok(! $r->persist('quizlebub'), 'persist returns false for a key that doesn\'t exist');
+ok(! $r->persist('quizlebub'), "persist returns false for a key that doesn't exist");
 
 sleep 2;
 

@@ -29,7 +29,7 @@ o   STRLEN   <-- TODO: determine correct behavior w/multi-byte chars
 my $r = Test::Mock::Redis->new;
 
 ok(! $r->exists('foo'), 'foo does not exist yet');
-is($r->get('foo'), undef, 'get on a key that doesn\'t exist returns undef');
+is($r->get('foo'), undef, "get on a key that doesn't exist returns undef");
 
 ok($r->set('foo', 'foobar'), 'can set foo');
 ok($r->set('bar', 'barfoo'), 'can set bar');
