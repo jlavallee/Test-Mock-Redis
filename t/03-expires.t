@@ -1,5 +1,7 @@
-#!perl
+#!perl -T
 
+use strict;
+use warnings;
 use Test::More;
 use Test::Mock::Redis;
 

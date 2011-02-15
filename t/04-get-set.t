@@ -1,6 +1,8 @@
-#!perl
+#!perl -T
 
 use utf8;
+use strict;
+use warnings;
 use Test::More;
 use Test::Mock::Redis;
 
