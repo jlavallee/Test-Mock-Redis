@@ -23,10 +23,10 @@ my $builder = Module::Build->new(
         'Test::More' => 0,
     },
     requires => {
-        'Test::More' => 0,
+        'Test::More'   => 0,
         'Scalar::Util' => 0,
     },
-    add_to_cleanup      => [ 'Test-Mock-Redis-*' ],
+    add_to_cleanup     => [ 'Test-Mock-Redis-*' ],
     create_makefile_pl => 'traditional',
 );
 
