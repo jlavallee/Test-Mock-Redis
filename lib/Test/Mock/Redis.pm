@@ -3,6 +3,7 @@ package Test::Mock::Redis;
 use warnings;
 use strict;
 
+use Carp;
 use Config;
 use Scalar::Util qw/blessed/;
 
@@ -270,7 +271,7 @@ sub type {
     my ( $self, $key ) = @_;
     # types are string, list, set, zset and hash
 
-    return 0 unless $self->exists($key);
+    return undef unless $self->exists($key);
 
     my $type = ref $self->_stash->{$key};
 
@@ -342,7 +343,26 @@ sub rpush {
 sub lpush {
     my ( $self, $key, $value ) = @_;
 
+    croak "[lpush] ERR Operation against a key holding the wrong kind of value"
+        unless !$self->exists($key) or $self->_is_list($key);
+
     $self->_make_list($key);
+
+    return unshift @{ $self->_stash->{$key} }, "$value";
+}
+
+sub rpushx {
+    my ( $self, $key, $value ) = @_;
+
+    return unless $self->_is_list($key);
+
+    return push @{ $self->_stash->{$key} }, "$value";
+}
+
+sub lpushx {
+    my ( $self, $key, $value ) = @_;
+
+    return unless $self->_is_list($key);
 
     return unshift @{ $self->_stash->{$key} }, "$value";
 }
@@ -401,11 +421,15 @@ sub lrem {
 sub lpop {
     my ( $self, $key ) = @_;
 
+    return undef unless $self->exists($key);
+
     return shift @{ $self->_stash->{$key} };
 }
 
 sub rpop {
     my ( $self, $key ) = @_;
+
+    return undef unless $self->exists($key);
 
     return pop @{ $self->_stash->{$key} };
 }
@@ -880,12 +904,18 @@ See http://dev.perl.org/licenses/ for more information.
 =cut
 
 
+sub _is_list {
+    my ( $self, $key ) = @_;
+
+    return blessed $self->_stash->{$key}
+        && $self->_stash->{$key}->isa('Test::Mock::Redis::List') ;
+}
+
 sub _make_list {
     my ( $self, $key ) = @_;
 
     $self->_stash->{$key} = Test::Mock::Redis::List->new
-        unless blessed $self->_stash->{$key}
-            && $self->_stash->{$key}->isa('Test::Mock::Redis::List') ;
+        unless $self->_is_list($key);
 }
 
 sub _make_hash {
