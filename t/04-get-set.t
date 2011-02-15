@@ -23,7 +23,7 @@ x   SET
     SETBIT
 x   SETNX
     SETRANGE
-x   STRLEN
+o   STRLEN   <-- TODO: determine correct behavior w/multi-byte chars
 =cut
 
 my $r = Test::Mock::Redis->new;
