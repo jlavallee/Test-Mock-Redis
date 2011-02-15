@@ -30,6 +30,8 @@ ok($r->hset('hash', 'foo', 'foobar'), "hset returns true when it's happy");
 
 is($r->hget('hash', 'foo'), 'foobar', "hget returns the value we just set");
 
+is($r->type('hash'), 'hash', "type of key hash is hash");
+
 is($r->hget('hash', 'bar'), undef, "hget for a hash field that doesn't exist is undef");
 
 ok($r->hset('hash', 'bar', 'foobar'), "hset returns true when it's happy");

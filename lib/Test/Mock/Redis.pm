@@ -276,15 +276,15 @@ sub type {
 
     return !$type 
          ? 'string'
-         : $type eq 'Test::Mock::Redis::Set'
-           ? 'set'
-           : $type eq 'Test::Mock::Redis::ZSet'
-             ? 'zset'
-             : $type eq 'HASH' 
-               ? 'hash'
-               : $type eq 'ARRAY' 
-                 ? 'list'
-                 : 'unknown'
+         : $type eq 'Test::Mock::Redis::Hash' 
+           ? 'hash'
+           : $type eq 'Test::Mock::Redis::Set'
+             ? 'set'
+             : $type eq 'Test::Mock::Redis::ZSet'
+               ? 'zset'
+                 : $type eq 'ARRAY' 
+                   ? 'list'
+                   : 'unknown'
     ;
 }
 
