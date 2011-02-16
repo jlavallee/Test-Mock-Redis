@@ -2,18 +2,20 @@ Build.PL
 Changes
 lib/Test/Mock/Redis.pm
 Makefile.PL
-MANIFEST
+MANIFEST			This list of files
 META.yml
 README
 t/00-load.t
 t/01-basic.t
+t/01-new.t
 t/01-server.t
 t/02-keys.t
 t/03-expires.t
 t/04-get-set.t
-t/06-hash.t
-t/07-sets.t
-t/08-sorted-sets.t
+t/06-list.t
+t/07-hash.t
+t/08-sets.t
+t/09-sorted-sets.t
 t/boilerplate.t
 t/manifest.t
 t/pod.t
