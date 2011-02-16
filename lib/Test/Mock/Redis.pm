@@ -58,26 +58,45 @@ sub _new_db {
 
 my $NUM_DBS = 16;
 
-our %defaults = (
-    _quit      => 0,
-    _stash     => [ map { _new_db } (1..$NUM_DBS) ],
-    _db_index  => 0,
-    _up_since  => time,
-    _last_save => time,
-);
+sub _defaults {
+    return (
+        _quit      => 0,
+        _shutdown  => 0,
+        _stash     => [ map { _new_db } (1..$NUM_DBS) ],
+        _db_index  => 0,
+        _up_since  => time,
+        _last_save => time,
+    );
+}
+
+
+my $instances;
 
 sub new {
     my $class = shift;
     my %args = @_;
 
-    my $self = bless { %defaults, %args }, $class;
+    my $server = defined $args{server}
+               ? $args{'server'}
+               : 'localhost';
+
+    if( $instances->{$server} ){
+        $instances->{$server}->{_quit} = 0;
+        return $instances->{$server};
+    }
+
+    my $self = bless {$class->_defaults, server => $server}, $class;
+
+    $instances->{$server} = $self;
+
     return $self;
 }
 
 sub ping {
     my $self = shift;
 
-    return !$self->{_quit};
+    return !$self->{_shutdown}
+        && !$self->{_quit};
 }
 
 sub auth {
@@ -97,7 +116,7 @@ sub quit {
 sub shutdown {
     my $self = shift;
 
-    $self->{_quit} = 1;
+    $self->{_shutdown} = 1;
 }
 
 sub set {
