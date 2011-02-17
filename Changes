@@ -4,6 +4,7 @@ Revision history for Test-Mock-Redis
         First version, released on an unsuspecting world.
 0.02    Mon Feb 14
         More redis functions, including auth, append, strlen, getset, mset & msetnx
-0.03    
+0.03    Wed Feb 16
         Pay attention to the server argument to new - now a singleton per server, just like redis
+        Fixed Test::Exception dependency
 
