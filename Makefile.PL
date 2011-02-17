@@ -6,6 +6,7 @@ WriteMakefile
   'VERSION_FROM' => 'lib/Test/Mock/Redis.pm',
   'PREREQ_PM' => {
                    'Scalar::Util' => 0,
+                   'Test::Exception' => 0,
                    'Test::More' => 0
                  },
   'INSTALLDIRS' => 'site',
