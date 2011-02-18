@@ -14,6 +14,7 @@ my $builder = Module::Build->new(
             repository => 'http://github.com/jlavallee/Test-Mock-Redis/',
         },
         no_index => { package => [ 'Test::Mock::Redis::PossiblyVolitile',
+                                   'Test::Mock::Redis::List',
                                    'Test::Mock::Redis::Hash',
                                    'Test::Mock::Redis::ZSet',
                                    'Test::Mock::Redis::Set',
