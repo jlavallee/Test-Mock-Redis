@@ -331,9 +331,8 @@ sub randomkey {
 sub rename {
     my ( $self, $from, $to, $whine ) = @_;
 
-    return 0 unless $self->exists($from);
-    return 0 if $from eq $to;
-    die "rename to existing key" if $whine && $self->_stash->{$to};
+    die '[rename] ERR source and destination objects are the same' if $from eq $to;
+    die '[rename] ERR no such key' unless $self->exists($from);
 
     $self->_stash->{$to} = $self->_stash->{$from};
     return 1;
