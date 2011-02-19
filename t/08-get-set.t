@@ -3,6 +3,7 @@
 use utf8;
 use strict;
 use warnings;
+use lib 't/tlib';
 use Test::More;
 use Test::Mock::Redis;
 
@@ -23,79 +24,92 @@ x   SET
     SETBIT
 x   SETNX
     SETRANGE
-o   STRLEN   <-- TODO: determine correct behavior w/multi-byte chars
+x   STRLEN
 =cut
 
-my $r = Test::Mock::Redis->new;
+ok(my $r = Test::Mock::Redis->new, 'pretended to connect to our test redis-server');
+my @redi = ($r);
 
-ok(! $r->exists('foo'), 'foo does not exist yet');
-is($r->get('foo'), undef, "get on a key that doesn't exist returns undef");
+my ( $guard, $srv );
+if( $ENV{RELEASE_TESTING} ){
+    use_ok("Redis");
+    use_ok("Test::SpawnRedisServer");
+    ($guard, $srv) = redis();
+    ok(my $r = Redis->new(server => $srv), 'connected to our test redis-server');
+    $r->flushall;
+    push @redi, $r;
+}
 
-ok($r->set('foo', 'foobar'), 'can set foo');
-ok($r->set('bar', 'barfoo'), 'can set bar');
-ok($r->set('baz', 'bazbaz'), 'can set baz');
+foreach my $r (@redi){
+    diag("testing $r") if $ENV{RELEASE_TESTING};
 
-is($r->get('foo'), 'foobar', 'can get foo');
-is($r->get('bar'), 'barfoo', 'can get bar');
-is($r->get('baz'), 'bazbaz', 'can get baz');
+    ok(! $r->exists('foo'), 'foo does not exist yet');
+    is($r->get('foo'), undef, "get on a key that doesn't exist returns undef");
 
-is($r->type('foo'), 'string', 'type of foo is string');
+    ok($r->set('foo', 'foobar'), 'can set foo');
+    ok($r->set('bar', 'barfoo'), 'can set bar');
+    ok($r->set('baz', 'bazbaz'), 'can set baz');
 
-ok(! $r->setnx('foo', 'foobar'), 'setnx returns false for existing key');
-ok($r->setnx('qux', 'quxqux'),   'setnx returns true for new key');
+    is($r->get('foo'), 'foobar', 'can get foo');
+    is($r->get('bar'), 'barfoo', 'can get bar');
+    is($r->get('baz'), 'bazbaz', 'can get baz');
 
-is($r->incr('incr-test'),  1, 'incr returns  1 for new value');
-is($r->decr('decr-test'), -1, 'decr returns -1 for new value');
+    is($r->type('foo'), 'string', 'type of foo is string');
 
-is($r->incr('incr-test'),  2, 'incr returns  2 the next time');
-is($r->decr('decr-test'), -2, 'decr returns -2 the next time');
+    ok(! $r->setnx('foo', 'foobar'), 'setnx returns false for existing key');
+    ok($r->setnx('qux', 'quxqux'),   'setnx returns true for new key');
 
-is($r->incr('decr-test'), -1);
-is($r->incr('decr-test'),  0, 'decr returns 0 appropriately');
+    is($r->incr('incr-test'),  1, 'incr returns  1 for new value');
+    is($r->decr('decr-test'), -1, 'decr returns -1 for new value');
 
-is($r->decr('incr-test'), 1);
-is($r->decr('incr-test'), 0, 'incr returns 0 appropriately');
+    is($r->incr('incr-test'),  2, 'incr returns  2 the next time');
+    is($r->decr('decr-test'), -2, 'decr returns -2 the next time');
 
-is($r->incrby('incrby-test', 10),  10, 'incrby 10 returns incrby value for new value');
-is($r->decrby('decrby-test', 10), -10, 'decrby 10 returns decrby value for new value');
+    is($r->incr('decr-test'), -1);
+    is($r->incr('decr-test'),  0, 'decr returns 0 appropriately');
 
-is($r->decrby('incrby-test', 10), 0, 'incrby returns 0 appropriately');
-is($r->incrby('decrby-test', 10), 0, 'decrby returns 0 appropriately');
+    is($r->decr('incr-test'), 1);
+    is($r->decr('incr-test'), 0, 'incr returns 0 appropriately');
 
-is($r->incrby('incrby-test', -15), -15, 'incrby a negative value works');
-is($r->decrby('incrby-test', -15),   0, 'decrby a negative value works');
+    is($r->incrby('incrby-test', 10),  10, 'incrby 10 returns incrby value for new value');
+    is($r->decrby('decrby-test', 10), -10, 'decrby 10 returns decrby value for new value');
 
-is($r->append('append-test', 'foo'), 3, 'append returns length (for new)');
-is($r->append('append-test', 'bar'), 6, 'append returns length');
-is($r->append('append-test', 'baz'), $r->strlen('append-test'), 'strlen agrees with append');
+    is($r->decrby('incrby-test', 10), 0, 'incrby returns 0 appropriately');
+    is($r->incrby('decrby-test', 10), 0, 'decrby returns 0 appropriately');
 
-is($r->strlen('append-test'), 9, 'length of append-test key is now 9');
+    is($r->incrby('incrby-test', -15), -15, 'incrby a negative value works');
+    is($r->decrby('incrby-test', -15),   0, 'decrby a negative value works');
 
-# TODO: is this behavior correct?
-is($r->append('append-test', '€'), 10, 'euro character (multi-byte) only counted as one character');
+    is($r->append('append-test', 'foo'), 3, 'append returns length (for new)');
+    is($r->append('append-test', 'bar'), 6, 'append returns length');
+    is($r->append('append-test', 'baz'), $r->strlen('append-test'), 'strlen agrees with append');
 
-is($r->getset('foo', 'whee!'),  'foobar', 'getset returned old value of foo');
-is($r->getset('foo', 'foobar'), 'whee!',  'getset returned old value of foo again (so it must have been set)');
+    is($r->strlen('append-test'), 9, 'length of append-test key is now 9');
+
+    is($r->append('append-test', '€'), 12, 'euro character (multi-byte) only counted by bytes');
+
+    is($r->getset('foo', 'whee!'),  'foobar', 'getset returned old value of foo');
+    is($r->getset('foo', 'foobar'), 'whee!',  'getset returned old value of foo again (so it must have been set)');
 
 
-is_deeply([$r->mget(qw/one two three/)], [undef, undef, undef], 'mget returns correct number of undefs');
+    is_deeply([$r->mget(qw/one two three/)], [undef, undef, undef], 'mget returns correct number of undefs');
 
-ok([$r->mset(one => 'fish', two => 'fish', red => 'herring')], 'true returned for Dr Seuss');
+    ok([$r->mset(one => 'fish', two => 'fish', red => 'herring')], 'true returned for Dr Seuss');
 
-is_deeply([$r->mget(qw/one two red blue/)], [qw/fish fish herring/, undef], 'mget returned Dr Seuss and undef');
+    is_deeply([$r->mget(qw/one two red blue/)], [qw/fish fish herring/, undef], 'mget returned Dr Seuss and undef');
 
-is_deeply([$r->mget(qw/two blue one red/)], [qw/fish/, undef, qw/fish herring/], 'mget likes order');
+    is_deeply([$r->mget(qw/two blue one red/)], [qw/fish/, undef, qw/fish herring/], 'mget likes order');
 
-ok( !$r->msetnx(blue => 'fish', red => 'fish'), 'msetnx fails if any key exists');
+    ok( !$r->msetnx(blue => 'fish', red => 'fish'), 'msetnx fails if any key exists');
 
-is($r->get('red'), 'herring', 'msetnx left red alone');
+    is($r->get('red'), 'herring', 'msetnx left red alone');
 
-ok($r->del('red'), 'bye bye red');
+    ok($r->del('red'), 'bye bye red');
 
-ok($r->msetnx(blue => 'fish', red => 'fish'), 'msetnx sets multiple keys');
+    ok($r->msetnx(blue => 'fish', red => 'fish'), 'msetnx sets multiple keys');
 
-is_deeply([$r->mget(qw/one two red blue/)], [qw/fish fish fish fish/], 'all fish now');
-
+    is_deeply([$r->mget(qw/one two red blue/)], [qw/fish fish fish fish/], 'all fish now');
+}
 
 
 =pod
@@ -111,7 +125,6 @@ TODO: {
     ok(! $r->getbit('bits', 16), "got 1 at bit offset $_");
 };
 =cut
-
 
 
 done_testing();

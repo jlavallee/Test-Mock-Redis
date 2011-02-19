@@ -78,9 +78,10 @@ sub new {
 
     my $server = defined $args{server}
                ? $args{'server'}
-               : 'localhost';
+               : 'localhost:6379';
 
     if( $instances->{$server} ){
+        confess "Could not connect to Redis server at $server" if $instances->{$server}->{_shutdown};
         $instances->{$server}->{_quit} = 0;
         return $instances->{$server};
     }
@@ -102,7 +103,7 @@ sub ping {
 sub auth {
     my $self = shift;
 
-    die '[auth] ERR wrong number of arguments for \'auth\' command' unless @_;
+    confess '[auth] ERR wrong number of arguments for \'auth\' command' unless @_;
 
     return 1;
 }
@@ -110,6 +111,7 @@ sub auth {
 sub quit {
     my $self = shift;
 
+    confess "Not connected to any server" if $self->{_quit};
     $self->{_quit} = 1;
 }
 
@@ -137,7 +139,7 @@ sub setnx {
 }
 
 sub setex {
-    my ( $self, $key, $value, $ttl ) = @_;
+    my ( $self, $key, $ttl, $value ) = @_;
     $self->set($key, $value);
     $self->expire($key, $ttl);
     return 1;
@@ -207,8 +209,7 @@ sub append {
 
 sub strlen {
     my ( $self, $key ) = @_;
-    # TODO: do we need byte length?
-    return length $self->_stash->{$key};
+    return do { use bytes; length $self->_stash->{$key}; };
 }
 
 sub getset {
@@ -330,9 +331,9 @@ sub randomkey {
 sub rename {
     my ( $self, $from, $to, $whine ) = @_;
 
-    return 0 unless $self->exists($from);
-    return 0 if $from eq $to;
-    die "rename to existing key" if $whine && $self->_stash->{$to};
+    confess '[rename] ERR source and destination objects are the same' if $from eq $to;
+    confess '[rename] ERR no such key' unless $self->exists($from);
+    confess 'rename to existing key' if $whine && $self->_stash->{$to};
 
     $self->_stash->{$to} = $self->_stash->{$from};
     return 1;
@@ -389,7 +390,7 @@ sub lpushx {
 sub llen {
     my ( $self, $key ) = @_;
 
-    return undef unless $self->exists($key);
+    return 0 unless $self->exists($key);
 
     return scalar @{ $self->_stash->{$key} };
 }
@@ -521,10 +522,13 @@ sub sinterstore {
 sub hset {
     my ( $self, $key, $hkey, $value ) = @_;
 
+    croak "[hset] ERR Operation against a key holding the wrong kind of value"
+        unless !$self->exists($key) or $self->_is_hash($key);
+
     $self->_make_hash($key);
 
     my $ret = !exists $self->_stash->{$key}->{$hkey};
-    $self->_stash->{$key}->{$hkey} = "$value";
+    $self->_stash->{$key}->{$hkey} = $value;
     return $ret;
 }
 
@@ -554,11 +558,15 @@ sub hmset {
 sub hget {
     my ( $self, $key, $hkey ) = @_;
 
+    return undef unless $self->_is_hash($key);
+
     return $self->_stash->{$key}->{$hkey};
 }
 
 sub hmget {
     my ( $self, $key, @hkeys ) = @_;
+
+    return undef unless $self->_is_hash($key);
 
     return map { $self->_stash->{$key}->{$_} } @hkeys;
 }
@@ -566,11 +574,16 @@ sub hmget {
 sub hexists {
     my ( $self, $key, $hkey ) = @_;
 
+    confess '[hexists] ERR Operation against a key holding the wrong kind of value'
+         if $self->exists($key) and !$self->_is_hash($key);
+
     return exists $self->_stash->{$key}->{$hkey};
 }
 
 sub hdel {
     my ( $self, $key, $hkey ) = @_;
+
+    return 0 unless $self->_is_hash($key);
 
     my $ret = $self->hexists($key, $hkey);
     delete $self->_stash->{$key}->{$hkey};
@@ -588,11 +601,15 @@ sub hincrby {
 sub hlen {
     my ( $self, $key ) = @_;
 
+    return 0 unless $self->_is_hash($key);
+
     return scalar values %{ $self->_stash->{$key} };
 }
 
 sub hkeys {
     my ( $self, $key ) = @_;
+
+    return () unless $self->_is_hash($key);
 
     return CORE::keys %{ $self->_stash->{$key} };
 }
@@ -928,7 +945,8 @@ See http://dev.perl.org/licenses/ for more information.
 sub _is_list {
     my ( $self, $key ) = @_;
 
-    return blessed $self->_stash->{$key}
+    return $self->exists($key)
+        && blessed $self->_stash->{$key}
         && $self->_stash->{$key}->isa('Test::Mock::Redis::List') ;
 }
 
@@ -939,12 +957,19 @@ sub _make_list {
         unless $self->_is_list($key);
 }
 
+sub _is_hash {
+    my ( $self, $key ) = @_;
+
+    return $self->exists($key)
+        && blessed $self->_stash->{$key}
+        && $self->_stash->{$key}->isa('Test::Mock::Redis::Hash') ;
+}
+
 sub _make_hash {
     my ( $self, $key ) = @_;
 
     $self->_stash->{$key} = Test::Mock::Redis::Hash->new
-        unless blessed $self->_stash->{$key}
-            && $self->_stash->{$key}->isa('Test::Mock::Redis::Hash') ;
+        unless $self->_is_hash($key);
 }
 
 sub _make_zset {
