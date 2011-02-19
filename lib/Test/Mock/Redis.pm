@@ -208,8 +208,7 @@ sub append {
 
 sub strlen {
     my ( $self, $key ) = @_;
-    # TODO: do we need byte length?
-    return length $self->_stash->{$key};
+    return do { use bytes; length $self->_stash->{$key}; };
 }
 
 sub getset {
