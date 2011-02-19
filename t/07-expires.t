@@ -32,13 +32,13 @@ sleep 1;
 
 ok(! $r->exists('baz'), 'baz expired');
 
-ok($r->setex('foo', 'foobar', 1), 'set foo again returns a true value');
+ok($r->setex('foo', 1, 'foobar'), 'set foo again returns a true value');
 
 sleep 1;
 
 ok(! $r->exists('foo'), 'foo expired');
 
-ok($r->setex('foo', 'foobar', 2), 'set foo again returns a true value');
+ok($r->setex('foo', 2, 'foobar'), 'set foo again returns a true value');
 ok($r->persist('foo'), 'persist for a key that exists returns true');
 
 ok(! $r->persist('quizlebub'), "persist returns false for a key that doesn't exist");
