@@ -10,8 +10,8 @@ use Test::More;
 use Test::Exception;
 use Test::Mock::Redis;
 
-ok(my $o = Test::Mock::Redis->new, 'pretended to connect to our test redis-server');
-my @redi = ($o);
+ok(my $r = Test::Mock::Redis->new, 'pretended to connect to our test redis-server');
+my @redi = ($r);
 
 my ( $guard, $srv );
 if( $ENV{RELEASE_TESTING} ){
@@ -25,7 +25,9 @@ if( $ENV{RELEASE_TESTING} ){
 
 foreach my $o (@redi){
     diag("testing $o") if $ENV{RELEASE_TESTING};
+
     ok($o->ping, 'ping');
+
 
     ## Commands operating on string values
 
@@ -171,7 +173,7 @@ foreach my $o (@redi){
 
     ## Commands operating on zsets (sorted sets)
     # TODO: ZUNIONSTORE, ZINTERSTORE, SORT, tests w/multiple values having the same score
-    #
+
     my $zset = 'test-zset';
     $o->del($zset);
 
@@ -200,6 +202,7 @@ foreach my $o (@redi){
 
 
     my $withscores = {$o->zrevrange($zset, 0, 1, 'WITHSCORES')};
+
     # this uglyness gets around floating point weirdness in the return (I.E. 2.1000000000000001);
     my $rounded_withscores = {
       map { $_ => 0 + sprintf("%0.5f", $withscores->{$_}) }
@@ -316,9 +319,18 @@ foreach my $o (@redi){
     ok($o->quit,  'quit');
     ok(!$o->ping, '... but after quit() returns false');
 
-    $o = Test::Mock::Redis->new;
+    my $type = ref $o;
+    $srv ||= 'localhost';
+
+    $o = $type->new(server => $srv);
     $o->shutdown();
     ok(!$o->ping(), 'ping() also false after shutdown()');
+
+    sleep(1);
+    throws_ok sub { $type->new(server => $srv) },
+      qr/Could not connect to Redis server at $srv/,
+      'Failed connection throws exception';
+
 }
 
 
