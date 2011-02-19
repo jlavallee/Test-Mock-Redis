@@ -10,4 +10,6 @@ unless ( $ENV{RELEASE_TESTING} ) {
 
 eval "use Test::CheckManifest 0.9";
 plan skip_all => "Test::CheckManifest 0.9 required" if $@;
+
+unlink 'dump.rdb' if -e 'dump.rdb';
 ok_manifest();
