@@ -78,9 +78,10 @@ sub new {
 
     my $server = defined $args{server}
                ? $args{'server'}
-               : 'localhost';
+               : 'localhost:6379';
 
     if( $instances->{$server} ){
+        confess "Could not connect to Redis server at $server" if $instances->{$server}->{_shutdown};
         $instances->{$server}->{_quit} = 0;
         return $instances->{$server};
     }
