@@ -390,7 +390,7 @@ sub lpushx {
 sub llen {
     my ( $self, $key ) = @_;
 
-    return undef unless $self->exists($key);
+    return 0 unless $self->exists($key);
 
     return scalar @{ $self->_stash->{$key} };
 }
