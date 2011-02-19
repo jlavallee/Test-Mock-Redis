@@ -332,6 +332,7 @@ sub rename {
 
     confess '[rename] ERR source and destination objects are the same' if $from eq $to;
     confess '[rename] ERR no such key' unless $self->exists($from);
+    confess 'rename to existing key' if $whine && $self->_stash->{$to};
 
     $self->_stash->{$to} = $self->_stash->{$from};
     return 1;
