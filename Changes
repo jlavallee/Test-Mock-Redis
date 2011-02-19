@@ -7,4 +7,6 @@ Revision history for Test-Mock-Redis
 0.03    Wed Feb 16
         Pay attention to the server argument to new - now a singleton per server, just like redis
         Fixed Test::Exception dependency
+0.04    Fri Feb 18
+        Made error conditions consistent with Redis.pm's behavior
 
