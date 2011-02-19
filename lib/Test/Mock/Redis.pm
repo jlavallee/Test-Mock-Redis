@@ -138,7 +138,7 @@ sub setnx {
 }
 
 sub setex {
-    my ( $self, $key, $value, $ttl ) = @_;
+    my ( $self, $key, $ttl, $value ) = @_;
     $self->set($key, $value);
     $self->expire($key, $ttl);
     return 1;
