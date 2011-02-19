@@ -110,6 +110,7 @@ sub auth {
 sub quit {
     my $self = shift;
 
+    confess "Not connected to any server" if $self->{_quit};
     $self->{_quit} = 1;
 }
 
