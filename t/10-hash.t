@@ -36,6 +36,7 @@ if( $ENV{RELEASE_TESTING} ){
 }
 
 foreach my $r (@redi){
+    diag("testing $r") if $ENV{RELEASE_TESTING};
 
     is $r->hget('hash', 'foo'), undef, "hget for a hash that doesn't exist is undef";
 
