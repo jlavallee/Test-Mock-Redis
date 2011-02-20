@@ -42,7 +42,7 @@ foreach my $r (@redi){
 
     is_deeply([sort $r->hkeys('hash')], [], "hkeys returned no keys for a hash that doesn't exist");
 
-    ok $r->hset('hash', 'foo', 'foobar'), "hset returns true when it's happy";
+    is $r->hset('hash', 'foo', 'foobar'), 1, "hset returns 1 when it's happy";
 
     is $r->hget('hash', 'foo'), 'foobar', "hget returns the value we just set";
 
@@ -56,7 +56,7 @@ foreach my $r (@redi){
 
     is_deeply([sort $r->hkeys('hash')], [qw/bar foo/], 'hkeys returned our keys');
 
-    ok ! $r->hset('hash', 'bar', 'barfoo'), "hset returns false when they field already existed";
+    is $r->hset('hash', 'bar', 'barfoo'), 0, "hset returns 0 when they field already existed";
 
     is $r->hget('hash', 'bar'), 'barfoo', "hget returns the value we just set";
 

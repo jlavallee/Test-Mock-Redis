@@ -27,11 +27,12 @@ tests without needing a running redis instance.
     use Test::Mock::Redis;
 
     my $redis = Test::Mock::Redis->new(server => 'whatever');
-    ...
 
     $redis->set($key, 'some value');
 
     $redis->get($key);
+
+    ...
 
 This module is designed to function as a drop in replacement for
 Redis.pm for testing purposes.
@@ -474,7 +475,9 @@ sub sadd {
     my ( $self, $key, $value ) = @_;
 
     $self->_make_set($key);
-    my $return = !exists $self->_stash->{$key}->{$value};
+    my $return = exists $self->_stash->{$key}->{$value}
+               ? 0
+               : 1;
     $self->_stash->{$key}->{$value} = 1;
     return $return;
 }
@@ -482,7 +485,7 @@ sub sadd {
 sub scard {
     my ( $self, $key ) = @_;
 
-    return scalar CORE::keys %{ $self->_stash->{$key} };
+    return scalar $self->smembers($key);
 }
 
 sub sismember {
@@ -497,6 +500,41 @@ sub srem {
     my $ret = exists $self->_stash->{$key}->{$value};
     delete $self->_stash->{$key}->{$value};
     return $ret;
+}
+
+sub spop {
+    my ( $self, $key ) = @_;
+
+    return undef unless $self->_is_hash($key);
+
+    my $value = $self->srandmember($key);
+    delete $self->_stash->{$key}->{$value};
+    return $value;
+}
+
+sub smove {
+    my ( $self, $source, $dest, $value ) = @_;
+
+    return 0 unless $self->_is_hash($source)
+                 && $self->_is_hash($dest)
+                 && $self->sismember($source, $value);
+
+    $self->_stash->{$dest}->{ delete $self->_stash->{$source}->{$value} } = 1;
+    return 1;
+}
+
+sub srandmember {
+    my ( $self, $key ) = @_;
+
+    return undef unless $self->_is_hash($key);
+
+    return $self->_stash->{ ($self->smembers($key))[rand int $self->scard($key)] };
+}
+
+sub smembers {
+    my ( $self, $key ) = @_;
+
+    return CORE::keys %{ $self->_stash->{$key} };
 }
 
 sub sinter {
@@ -527,7 +565,9 @@ sub hset {
 
     $self->_make_hash($key);
 
-    my $ret = !exists $self->_stash->{$key}->{$hkey};
+    my $ret = exists $self->_stash->{$key}->{$hkey}
+            ? 0
+            : 1;
     $self->_stash->{$key}->{$hkey} = $value;
     return $ret;
 }
@@ -738,7 +778,9 @@ sub zadd {
 
     $self->_make_zset($key);
 
-    my $ret = !exists $self->_stash->{$key}->{$value};
+    my $ret = exists $self->_stash->{$key}->{$value}
+            ? 0
+            : 1;
     $self->_stash->{$key}->{$value} = $score;
     return $ret;
 }
