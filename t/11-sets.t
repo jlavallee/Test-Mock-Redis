@@ -8,8 +8,8 @@ use Test::Exception;
 use Test::Mock::Redis;
 
 =pod
-    SADD
-    SCARD
+x   SADD
+x   SCARD
     SDIFF
     SDIFFSTORE
     SINTER
@@ -17,9 +17,9 @@ use Test::Mock::Redis;
     SISMEMBER
     SMEMBERS
     SMOVE
-    SPOP
-    SRANDMEMBER
-    SREM
+o   SPOP
+o   SRANDMEMBER
+x   SREM
     SUNION
     SUNIONSTORE
 =cut
@@ -51,16 +51,32 @@ foreach my $r (@redi){
 
     is $r->sadd('set', 'foo'),  1, "sadd returns 1 when element is new to the set";
     is $r->sadd('set', 'foo'),  0, "sadd returns 0 when element is already in the set";
+    is $r->scard('set'),        1, "scard returns size of set";
 
     is $r->sadd('set', 'bar'),  1, "sadd returns 1 when element is new to the set";
+    is $r->scard('set'),        2, "scard returns size of set";
 
     is $r->sismember('set', 'foo'), 1, "sismember returns 1 for a set element that exists";
     is $r->sismember('set', 'baz'), 0, "sismember returns 0 for a set element that doesn't exist";
 
+
     is_deeply [sort $r->smembers('set')], [qw/bar foo/], "smembers returns all members of the set";
 
-    is $r->srem('set', 'foo'), 1, "srem returns 1 when it removes an element";
+    is $r->srem('set', 'bar'), 1, "srem returns 1 when it removes an element";
 
+    is $r->sadd('set', $_), 1, "srem returns 1 when it adds a new element to the set" 
+        for (qw/bar baz qux quux quuux/);
+
+    is $r->type('set'), 'set', "our set has type set";
+
+    my $randmember = $r->srandmember('set');
+    ok $randmember, "srandmember something";
+    ok grep { $_ eq $randmember } $r->smembers('set'), "srandmember returned a member";
+
+    my $popped = $r->spop('set');
+    ok $popped, "spopped something";
+    ok grep { $_ eq $popped } qw/foo bar baz qux quux quuux/, "spopped a member";
+    is $r->sismember('set', $popped), 0, "spop removed $popped";
 }
 
 done_testing();

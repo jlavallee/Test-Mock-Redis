@@ -509,7 +509,7 @@ sub srem {
 sub spop {
     my ( $self, $key ) = @_;
 
-    return undef unless $self->_is_hash($key);
+    return undef unless $self->_is_set($key);
 
     my $value = $self->srandmember($key);
     delete $self->_stash->{$key}->{$value};
@@ -519,8 +519,8 @@ sub spop {
 sub smove {
     my ( $self, $source, $dest, $value ) = @_;
 
-    return 0 unless $self->_is_hash($source)
-                 && $self->_is_hash($dest)
+    return 0 unless $self->_is_set($source)
+                 && $self->_is_set($dest)
                  && $self->sismember($source, $value);
 
     $self->_stash->{$dest}->{ delete $self->_stash->{$source}->{$value} } = 1;
@@ -530,9 +530,9 @@ sub smove {
 sub srandmember {
     my ( $self, $key ) = @_;
 
-    return undef unless $self->_is_hash($key);
+    return undef unless $self->_is_set($key);
 
-    return $self->_stash->{ ($self->smembers($key))[rand int $self->scard($key)] };
+    return ($self->smembers($key))[rand int $self->scard($key)];
 }
 
 sub smembers {
@@ -1019,20 +1019,36 @@ sub _make_hash {
         unless $self->_is_hash($key);
 }
 
-sub _make_zset {
+sub _is_set {
     my ( $self, $key ) = @_;
 
-    $self->_stash->{$key} = Test::Mock::Redis::ZSet->new
-        unless blessed $self->_stash->{$key}
-            && $self->_stash->{$key}->isa('Test::Mock::Redis::ZSet') ;
+    return $self->exists($key)
+        && blessed $self->_stash->{$key}
+        && $self->_stash->{$key}->isa('Test::Mock::Redis::Set') ;
 }
 
 sub _make_set {
     my ( $self, $key ) = @_;
+
     $self->_stash->{$key} = Test::Mock::Redis::Set->new
-        unless blessed $self->_stash->{$key} 
-            && $self->_stash->{$key}->isa( 'Test::Mock::Redis::Set' );
+        unless $self->_is_set($key);
 }
+
+sub _is_zset {
+    my ( $self, $key ) = @_;
+
+    return $self->exists($key)
+        && blessed $self->_stash->{$key}
+        && $self->_stash->{$key}->isa('Test::Mock::Redis::ZSet') ;
+}
+
+sub _make_zset {
+    my ( $self, $key ) = @_;
+
+    $self->_stash->{$key} = Test::Mock::Redis::ZSet->new
+        unless $self->_is_zset($key);
+}
+
 
 
 1; # End of Test::Mock::Redis
