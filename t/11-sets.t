@@ -57,7 +57,7 @@ foreach my $r (@redi){
     is $r->sismember('set', 'foo'), 1, "sismember returns 1 for a set element that exists";
     is $r->sismember('set', 'baz'), 0, "sismember returns 0 for a set element that doesn't exist";
 
-    is [sort $r->smembers('set')], [qw/bar foo/], "smembers returns all members of the set";
+    is_deeply [sort $r->smembers('set')], [qw/bar foo/], "smembers returns all members of the set";
 
     is $r->srem('set', 'foo'), 1, "srem returns 1 when it removes an element";
 

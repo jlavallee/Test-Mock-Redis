@@ -491,13 +491,17 @@ sub scard {
 sub sismember {
     my ( $self, $key, $value ) = @_;
 
-    return exists $self->_stash->{$key}->{$value};
+    return exists $self->_stash->{$key}->{$value}
+            ? 1 
+            : 0;
 }
 
 sub srem {
     my ( $self, $key, $value ) = @_;
 
-    my $ret = exists $self->_stash->{$key}->{$value};
+    my $ret = exists $self->_stash->{$key}->{$value}
+            ? 1 
+            : 0;
     delete $self->_stash->{$key}->{$value};
     return $ret;
 }
@@ -1066,9 +1070,9 @@ my $expires;
 sub FETCH {
     my ( $self, $key ) = @_;
 
-    $self->_delete_if_expired($key);
-
-    return $self->{$key};
+    return $self->EXISTS($key)
+         ? $self->{$key}
+         : undef;
 }
 
 sub EXISTS {
