@@ -907,8 +907,9 @@ Those marked with an "o" need help.
 Those that are unmarked have no tests, or are un-implemented.  For example:
 
 x   AUTH          <--- has some tests
-x   SET
+
 o   KEYS          <--- only partially tested and/or implemented
+
     ZINTERSTORE   <--- not tested (or maybe not implemented)
 
 
