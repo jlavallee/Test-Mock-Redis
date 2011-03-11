@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use lib 't/tlib';
 use Test::More;
+use Time::Mock throttle => 100;
 use Test::Mock::Redis;
 
 =pod
