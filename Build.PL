@@ -3,6 +3,7 @@ use warnings;
 use Module::Build;
 
 my $builder = Module::Build->new(
+    perl                => '5.006_001',
     module_name         => 'Test::Mock::Redis',
     license             => 'perl',
     dist_author         => q{Jeff Lavallee <jeff@zeroclue.com>},

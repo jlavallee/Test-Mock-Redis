@@ -310,21 +310,21 @@ sub type {
     ;
 }
 
-sub keys {
+sub keys :method {
     my ( $self, $match ) = @_;
 
     # TODO: we're not escaping other meta-characters
     $match =~ s/(?<!\\)\*/.*/g;
     $match =~ s/(?<!\\)\?/.?/g;
 
-    return @{[ sort { $a cmp $b } grep { /$match/ } CORE::keys %{ $self->_stash }]};
+    return @{[ sort { $a cmp $b } grep { /$match/ } keys %{ $self->_stash }]};
 }
 
 sub randomkey {
     my $self = shift;
 
-    return ( CORE::keys %{ $self->_stash } )[
-                int(rand( scalar CORE::keys %{ $self->_stash } ))
+    return ( keys %{ $self->_stash } )[
+                int(rand( scalar keys %{ $self->_stash } ))
             ]
     ;
 }
@@ -350,7 +350,7 @@ sub renamenx {
 sub dbsize {
     my $self = shift;
 
-    return scalar CORE::keys %{ $self->_stash };
+    return scalar keys %{ $self->_stash };
 }
 
 sub rpush {
@@ -538,7 +538,7 @@ sub srandmember {
 sub smembers {
     my ( $self, $key ) = @_;
 
-    return CORE::keys %{ $self->_stash->{$key} };
+    return keys %{ $self->_stash->{$key} };
 }
 
 sub sinter {
@@ -547,10 +547,10 @@ sub sinter {
     my $r = {};
 
     foreach my $key (@keys){
-        $r->{$_}++ for CORE::keys %{ $self->_stash->{$key} };
+        $r->{$_}++ for keys %{ $self->_stash->{$key} };
     }
 
-    return grep { $r->{$_} >= @keys } CORE::keys %$r;
+    return grep { $r->{$_} >= @keys } keys %$r;
 }
 
 sub sinterstore {
@@ -592,7 +592,7 @@ sub hmset {
 
     $self->_make_hash($key);
 
-    foreach my $hkey ( CORE::keys %hash ){
+    foreach my $hkey ( keys %hash ){
         $self->hset($key, $hkey, $hash{$hkey});
     }
 
@@ -655,7 +655,7 @@ sub hkeys {
 
     return () unless $self->_is_hash($key);
 
-    return CORE::keys %{ $self->_stash->{$key} };
+    return keys %{ $self->_stash->{$key} };
 }
 
 sub hvals {
@@ -760,10 +760,10 @@ sub info {
         used_memory_human          => '3.74M',
         vm_enabled                 => '0',
         map { 'db'.$_ => sprintf('keys=%d,expires=%d',
-                             scalar CORE::keys %{ $self->_stash($_) },
+                             scalar keys %{ $self->_stash($_) },
                              $self->_expires_count_for_db($_),
                          )
-            } grep { scalar CORE::keys %{ $self->_stash($_) } > 0 }
+            } grep { scalar keys %{ $self->_stash($_) } > 0 }
                 (0..15)
     };
 }
@@ -832,7 +832,7 @@ sub zrange {
                ( map { $_->[0] }
                      sort { $a->[1] <=> $b->[1] }
                          map { [ $_, $self->_stash->{$key}->{$_} ] }
-                             CORE::keys %{ $self->_stash->{$key} } 
+                             keys %{ $self->_stash->{$key} } 
                )[$start..$stop]
     ;
 }
@@ -846,7 +846,7 @@ sub zrevrange {
                ( map { $_->[0] }
                      sort { $b->[1] <=> $a->[1] }
                          map { [ $_, $self->_stash->{$key}->{$_} ] }
-                             CORE::keys %{ $self->_stash->{$key} } 
+                             keys %{ $self->_stash->{$key} } 
                )[$start..$stop]
     ;
 }
