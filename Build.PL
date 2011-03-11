@@ -22,7 +22,6 @@ my $builder = Module::Build->new(
                     },
     },
     build_requires => {
-        'Time::Mock'      => 0,
         'Test::More'      => 0,
         'Test::Exception' => 0,
     },
