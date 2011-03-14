@@ -52,7 +52,7 @@ foreach my $r (@redi){
 
     ok $r->hset('hash', 'bar', 'foobar'), "hset returns true when it's happy";
 
-    is $r->hlen('hash'), 2, 'hlen counted two keys';
+    is $r->hlen('hash'), 2, "hlen counted two keys";
 
     is_deeply([sort $r->hkeys('hash')], [qw/bar foo/], 'hkeys returned our keys');
 
@@ -85,7 +85,7 @@ foreach my $r (@redi){
 
     ok ! $r->hexists('hash', 'foo'), "hdel really deleted the field";
 
-    is $r->hlen('hash'), 0, 'hlen counted zarro keys';
+    is $r->hlen('hash'), 0, "hlen counted zarro keys";
 
     is_deeply([sort $r->hkeys('hash')], [], "hkeys returned no keys for an empty hash");
 }
