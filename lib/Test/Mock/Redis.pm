@@ -561,6 +561,26 @@ sub sinterstore {
     return $self->scard($dest);
 }
 
+sub sunion {
+    my ( $self, @keys ) = @_;
+
+    my $r = {};
+
+    foreach my $key (@keys){
+        $r->{$_}++ for keys %{ $self->_stash->{$key} };
+    }
+
+    return grep { $r->{$_} >= 1 } keys %$r;
+}
+
+sub sunionstore {
+    my ( $self, $dest, @keys ) = @_;
+
+    $self->_stash->{$dest} = { map { $_ => 1 } $self->sunion(@keys) };
+    bless $self->_stash->{$dest}, 'Test::Mock::Redis::Set';
+    return $self->scard($dest);
+}
+
 sub hset {
     my ( $self, $key, $hkey, $value ) = @_;
 

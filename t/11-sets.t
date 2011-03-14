@@ -20,8 +20,8 @@ o   SMEMBERS
 o   SPOP
 o   SRANDMEMBER
 x   SREM
-    SUNION
-    SUNIONSTORE
+x   SUNION
+x   SUNIONSTORE
 =cut
 
 ok(my $r = Test::Mock::Redis->new, 'pretended to connect to our test redis-server');
@@ -104,6 +104,15 @@ foreach my $r (@redi){
     is $r->sinterstore('destset', 'set', 'emptyset'), 0, 'cardinality of empty intersection is zero';
     is $r->sinterstore('destset', 'set', 'anotherset', 'otherset'), 2, 'sinterstore returns cardinality of intersection';
 
+    is $r->sadd('otherset', $_), 1, "srem returns 1 when it adds a new element to the set" 
+        for (qw/oink bah neigh/);
+
+    is_deeply [sort $r->sunion('set', 'otherset')],   [sort @members, qw/oink bah neigh/], 'sunion returns all members of two sets';
+    is_deeply [sort $r->sunion('set', 'anotherset')], [sort @members], 'sunion returns all members of two sets';
+
+    is $r->sunionstore('destset', 'set', 'otherset'), @members + 3, 'sunionstore returns cardinality of union';
+    is $r->sunionstore('destset', 'set', 'emptyset'), @members,     'cardinality of empty union is same as carindality of set';
+    is $r->sunionstore('destset', 'set', 'anotherset', 'otherset'), @members + 3, 'sunion returns cardinality of union';
 }
 
 done_testing();
