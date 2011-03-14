@@ -189,9 +189,9 @@ sub ttl {
     return $tied->ttl($key);
 }
 
-sub exists {
+sub exists :method {
     my ( $self, $key ) = @_;
-    return exists $self->_stash->{$key};
+    return exists $self->_stash->{$key} ? 1 : 0;
 }
 
 sub get {
@@ -485,7 +485,9 @@ sub sadd {
 sub scard {
     my ( $self, $key ) = @_;
 
-    return scalar $self->smembers($key);
+    return $self->_is_set($key)
+         ? scalar $self->smembers($key)
+         : 0;
 }
 
 sub sismember {
@@ -499,11 +501,11 @@ sub sismember {
 sub srem {
     my ( $self, $key, $value ) = @_;
 
-    my $ret = exists $self->_stash->{$key}->{$value}
-            ? 1 
-            : 0;
+    return 0 unless exists $self->_stash->{$key}
+                 && exists $self->_stash->{$key}->{$value};
+
     delete $self->_stash->{$key}->{$value};
-    return $ret;
+    return 1;
 }
 
 sub spop {
@@ -519,12 +521,16 @@ sub spop {
 sub smove {
     my ( $self, $source, $dest, $value ) = @_;
 
-    return 0 unless $self->_is_set($source)
-                 && $self->_is_set($dest)
-                 && $self->sismember($source, $value);
+    croak "[smove] ERR Operation against a key holding the wrong kind of value"
+        if ( $self->exists($source) and not $self->_is_set($source) )
+        or ( $self->exists($dest)   and not $self->_is_set($dest)   );
 
-    $self->_stash->{$dest}->{ delete $self->_stash->{$source}->{$value} } = 1;
-    return 1;
+    if( (delete $self->_stash->{$source}->{$value}) ){
+        $self->_make_set($dest) unless $self->_is_set($dest);
+        $self->_stash->{$dest}->{$value} = 1;
+        return 1;
+    }
+    return 0;  # guess it wasn't in there
 }
 
 sub srandmember {
@@ -577,6 +583,26 @@ sub sunionstore {
     my ( $self, $dest, @keys ) = @_;
 
     $self->_stash->{$dest} = { map { $_ => 1 } $self->sunion(@keys) };
+    bless $self->_stash->{$dest}, 'Test::Mock::Redis::Set';
+    return $self->scard($dest);
+}
+
+sub sdiff {
+    my ( $self, $start, @keys ) = @_;
+
+    my $r = { map { $_ => 0 } keys %{ $self->_stash->{$start} } };
+
+    foreach my $key (@keys){
+        $r->{$_}++ for keys %{ $self->_stash->{$key} };
+    }
+
+    return grep { $r->{$_} == 0 } keys %$r;
+}
+
+sub sdiffstore {
+    my ( $self, $dest, $start, @keys ) = @_;
+
+    $self->_stash->{$dest} = { map { $_ => 1 } $self->sdiff($start, @keys) };
     bless $self->_stash->{$dest}, 'Test::Mock::Redis::Set';
     return $self->scard($dest);
 }

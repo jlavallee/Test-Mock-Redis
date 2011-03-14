@@ -10,15 +10,15 @@ use Test::Mock::Redis;
 =pod
 x   SADD
 x   SCARD
-    SDIFF
-    SDIFFSTORE
+x   SDIFF
+x   SDIFFSTORE
 x   SINTER
 x   SINTERSTORE
 x   SISMEMBER
-o   SMEMBERS
-    SMOVE
-o   SPOP
-o   SRANDMEMBER
+x   SMEMBERS
+x   SMOVE
+x   SPOP
+x   SRANDMEMBER
 x   SREM
 x   SUNION
 x   SUNIONSTORE
@@ -101,8 +101,13 @@ foreach my $r (@redi){
     is_deeply [$r->sinter('set', 'otherset', 'emptyset')], [], "sinter returns empty list with multiple sets";
 
     is $r->sinterstore('destset', 'set', 'otherset'), 3, "sinterstore returns cardinality of intersection";
+    is_deeply [sort $r->smembers('destset')], [sort $r->sinter('set', 'otherset')], "sinterstore stored the correct result";
+
     is $r->sinterstore('destset', 'set', 'emptyset'), 0, "cardinality of empty intersection is zero";
-    is $r->sinterstore('destset', 'set', 'anotherset', 'otherset'), 2, "sinterstore returns cardinality of intersection";
+    is_deeply [sort $r->smembers('destset')], [sort $r->sinter('set', 'emptyset')], "sinterstore stored the correct result";
+
+    is $r->sinterstore('destset', 'set', 'otherset', 'anotherset'), 2, "sinterstore returns cardinality of intersection";
+    is_deeply [sort $r->smembers('destset')], [sort $r->sinter('set', 'otherset', 'anotherset')], "sinterstore stored the correct result";
 
     is $r->sadd('otherset', $_), 1, "srem returns 1 when it adds a new element to the set" 
         for (qw/oink bah neigh/);
@@ -111,8 +116,47 @@ foreach my $r (@redi){
     is_deeply [sort $r->sunion('set', 'anotherset')], [sort @members], "sunion returns all members of two sets";
 
     is $r->sunionstore('destset', 'set', 'otherset'), @members + 3, "sunionstore returns cardinality of union";
-    is $r->sunionstore('destset', 'set', 'emptyset'), @members,     "cardinality of empty union is same as carindality of set";
-    is $r->sunionstore('destset', 'set', 'anotherset', 'otherset'), @members + 3, "sunion returns cardinality of union";
+    is_deeply [sort $r->smembers('destset')], [sort $r->sunion('set', 'otherset')], "sunionstore stored the correct result";
+
+    is $r->sunionstore('destset', 'set', 'emptyset'), @members, "cardinality of empty union is same as carindality of set";
+    is_deeply [sort $r->smembers('destset')], [sort $r->sunion('set', 'emptyset')], "sunionstore stored the correct result";
+
+    is $r->sunionstore('destset', 'set', 'otherset', 'anotherset'), @members + 3, "sunion returns cardinality of union";
+    is_deeply [sort $r->smembers('destset')], [sort $r->sunion('set', 'otherset', 'anotherset')], "sunionstore stored the correct result";
+
+    is_deeply [sort $r->sdiff('set', 'otherset')], [qw/quuux quux qux/], "sdiff removed members correctly";
+    is_deeply [sort $r->sdiff('set', 'otherset', 'anotherset')], [qw/quuux quux/], "sdiff removed members correctly";
+
+    is $r->sdiffstore('destset', 'set', 'otherset'), 3, "sdiffstore returnes cardinality of difference";
+    is_deeply [sort $r->smembers('destset')], [sort $r->sdiff('set', 'otherset')], "sdiffstore stored the correct result";
+
+    is $r->sdiffstore('destset', 'set', 'otherset', 'anotherset'), 2, "sdiffstore returnes cardinality of difference";
+    is_deeply [sort $r->smembers('destset')], [sort $r->sdiff('set', 'otherset', 'anotherset')], "sdiffstore stored the correct result";
+
+    # cardinality of the difference with the empty set is the same as what we started with
+    is $r->sdiffstore('destset', 'set', 'emptyset'), $r->scard('set'), "sdiffstore returnes cardinality of difference";
+    is_deeply [sort $r->smembers('destset')], [sort $r->smembers('set')], "sdiffstore stored the correct result";
+
+    is $r->smove('otherset', 'set', 'oink'), 1, "smove returns true if it moved an element succesfully";
+    is $r->sismember('set', 'oink'), 1, "oink moved to set";
+    is $r->sismember('otherset', 'oink'), 0, "oink removed from otherset";
+
+    is $r->smove('otherset', 'set', 'meow'), 0, "smove returns false if it failed to move an element";
+
+    is $r->smove('notaset', 'otherset', 'foo'), 0, "smove returns false when source doesn't exist";
+
+    $r->set('justakey', 'foobar');    
+
+    throws_ok { $r->smove('justakey', 'set', 'foo') } 
+        qr/^\Q[smove] ERR Operation against a key holding the wrong kind of value\E/,
+         "smove dies when source isn't a set";
+
+    throws_ok { $r->smove('set', 'justakey', 'foo') } 
+        qr/^\Q[smove] ERR Operation against a key holding the wrong kind of value\E/,
+         "smove dies when dest isn't a set";
+
+    is $r->smove('otherset', 'newset', 'foo'), 1, "smove returns true when destination doesn't exist";
+    is $r->type('newset'), 'set', "newset sprang into existence";
 }
 
 done_testing();
