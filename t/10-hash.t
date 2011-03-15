@@ -113,6 +113,23 @@ foreach my $r (@redi){
 
     is_deeply [ $r->hmget('hash', qw/blarg blorf/) ], [ undef, undef ],
         "hmget returns undef even if all values are missing";
+
+    throws_ok { $r->hincrby('hash', 'foo') }
+        qr/^\Q[hincrby] ERR wrong number of arguments for 'hincrby' command\E/,
+        "hincerby dies when called with the wrong number of arguments";
+
+    throws_ok { $r->hincrby('hash', 'foo', 1) }
+        qr/^\Q[hincrby] ERR hash value is not an integer\E/, 
+         "hincrby dies when a non-integer is incremented";
+
+    is $r->hincrby('hash', 'incrme', 1), 1, "incrby 1 on a value that doesn't exist returns 1";
+    is $r->hincrby('hash', 'incrmf', 2), 2, "incrby 2 on a value that doesn't exist returns 2";
+
+    is $r->hincrby('hash', 'incrmf', -1), 1, "incrby returns value resulting from increment";
+
+    is $r->hset('hash', 'emptystr', ''), 1, "can set hash value to empty string";
+
+    is $r->hincrby('hash', 'emptystr', 1), 1, "incrby 1 on the empty string returns 1";
 }
 
 

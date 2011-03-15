@@ -364,7 +364,7 @@ sub rpush {
 sub lpush {
     my ( $self, $key, $value ) = @_;
 
-    croak "[lpush] ERR Operation against a key holding the wrong kind of value"
+    confess "[lpush] ERR Operation against a key holding the wrong kind of value"
         unless !$self->exists($key) or $self->_is_list($key);
 
     $self->_make_list($key);
@@ -521,7 +521,7 @@ sub spop {
 sub smove {
     my ( $self, $source, $dest, $value ) = @_;
 
-    croak "[smove] ERR Operation against a key holding the wrong kind of value"
+    confess "[smove] ERR Operation against a key holding the wrong kind of value"
         if ( $self->exists($source) and not $self->_is_set($source) )
         or ( $self->exists($dest)   and not $self->_is_set($dest)   );
 
@@ -610,7 +610,7 @@ sub sdiffstore {
 sub hset {
     my ( $self, $key, $hkey, $value ) = @_;
 
-    croak "[hset] ERR Operation against a key holding the wrong kind of value"
+    confess "[hset] ERR Operation against a key holding the wrong kind of value"
         unless !$self->exists($key) or $self->_is_hash($key);
 
     $self->_make_hash($key);
@@ -681,7 +681,20 @@ sub hdel {
 }
 
 sub hincrby {
+    confess "[hincrby] ERR wrong number of arguments for 'hincrby' command"
+        unless @_ == 4;
+
     my ( $self, $key, $hkey, $incr ) = @_;
+
+    confess '[hexists] ERR Operation against a key holding the wrong kind of value'
+         if $self->exists($key) and !$self->_is_hash($key);
+
+    confess "[hincrby] ERR hash value is not an integer"
+         if $self->hexists($key, $hkey)                   # it exists
+             and $self->hget($key, $hkey) !~ /^-?\d+$|^$/ # and it doesn't look like an integer (and it isn't empty)
+    ;
+
+    $self->_make_hash($key) unless $self->_is_hash($key);
 
     $self->_stash->{$key}->{$hkey} ||= 0;
 
@@ -713,7 +726,7 @@ sub hvals {
 sub hgetall {
     my ( $self, $key ) = @_;
 
-    croak "[hgetall] ERR Operation against a key holding the wrong kind of value"
+    confess "[hgetall] ERR Operation against a key holding the wrong kind of value"
         if $self->exists( $key ) and not $self->_is_hash($key);
 
     return $self->exists( $key )
