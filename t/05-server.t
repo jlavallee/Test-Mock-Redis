@@ -44,7 +44,7 @@ if( $ENV{RELEASE_TESTING} ){
     ($guard, $srv) = redis();
     ok(my $r = Redis->new(server => $srv), 'connected to our test redis-server');
     $r->flushall;
-    push @redi, $r;
+    unshift @redi, $r
 }
 
 foreach my $r (@redi){
