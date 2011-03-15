@@ -11,12 +11,12 @@ use Test::Mock::Redis;
 x   HDEL
 x   HEXISTS
 x   HGET
-    HGETALL
+x   HGETALL
     HINCRBY
 x   HKEYS
 x   HLEN
     HMGET
-    HMSET
+o   HMSET
 x   HSET
     HSETNX
     HVALS
@@ -64,13 +64,15 @@ foreach my $r (@redi){
 
     is $r->get('hash'), 'blarg', "even though it squashed it";
 
-    throws_ok { $r->hset('hash', 'foo', 'foobar') } qr/^\Q[hset] ERR Operation against a key holding the wrong kind of value\E/,
-         "hset throws error when we overwrite a string with a hash";
+    throws_ok { $r->hset('hash', 'foo', 'foobar') } 
+        qr/^\Q[hset] ERR Operation against a key holding the wrong kind of value\E/,
+        "hset throws error when we overwrite a string with a hash";
 
     ok ! $r->hexists('blarg', 'blorf'), "hexists on a hash that doesn't exist returns false";
 
-    throws_ok { $r->hexists('hash', 'blarg') } qr/^\Q[hexists] ERR Operation against a key holding the wrong kind of value\E/,
-         "hexists on a field that's not a hash throws error";
+    throws_ok { $r->hexists('hash', 'blarg') } 
+        qr/^\Q[hexists] ERR Operation against a key holding the wrong kind of value\E/,
+        "hexists on a field that's not a hash throws error";
 
     $r->del('hash');
 
@@ -88,6 +90,20 @@ foreach my $r (@redi){
     is $r->hlen('hash'), 0, "hlen counted zarro keys";
 
     is_deeply([sort $r->hkeys('hash')], [], "hkeys returned no keys for an empty hash");
+
+    # OK seems inconsistient
+    is $r->hmset('hash', qw/foo bar bar baz baz qux qux quux quux quuux/), 'OK', "hmset returns OK if it set some stuff";
+
+    is_deeply { $r->hgetall('hash') }, { foo => 'bar', bar => 'baz', baz => 'qux', qux => 'quux', quux => 'quuux' },
+        "hget all returned our whole hash";
+
+    is_deeply { $r->hgetall("I don't exist") }, { }, "hgetall on non-existent key is empty";
+
+    $r->set('not a hash', 'foo bar');
+
+    throws_ok { $r->hgetall('not a hash') } 
+         qr/^\Q[hgetall] ERR Operation against a key holding the wrong kind of value\E/,
+         "hgetall on key that isn't a hash throws error";
 }
 
 

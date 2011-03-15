@@ -642,7 +642,7 @@ sub hmset {
         $self->hset($key, $hkey, $hash{$hkey});
     }
 
-    return 1;
+    return 'OK';
 }
 
 sub hget {
@@ -713,7 +713,12 @@ sub hvals {
 sub hgetall {
     my ( $self, $key ) = @_;
 
-    return %{ $self->_stash->{$key} };
+    croak "[hgetall] ERR Operation against a key holding the wrong kind of value"
+        if $self->exists( $key ) and not $self->_is_hash($key);
+
+    return $self->exists( $key )
+         ? %{ $self->_stash->{$key} }
+         : ();
 }
 
 sub move {
