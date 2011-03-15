@@ -610,8 +610,9 @@ sub sdiffstore {
 sub hset {
     my ( $self, $key, $hkey, $value ) = @_;
 
-    confess "[hset] ERR Operation against a key holding the wrong kind of value"
-        unless !$self->exists($key) or $self->_is_hash($key);
+    confess '[hset] ERR Operation against a key holding the wrong kind of value'
+         if $self->exists($key) and !$self->_is_hash($key);
+
 
     $self->_make_hash($key);
 
@@ -712,7 +713,10 @@ sub hlen {
 sub hkeys {
     my ( $self, $key ) = @_;
 
-    return () unless $self->_is_hash($key);
+    confess '[hkeys] ERR Operation against a key holding the wrong kind of value'
+         if $self->exists($key) and !$self->_is_hash($key);
+
+    return () unless $self->exists($key);
 
     return keys %{ $self->_stash->{$key} };
 }
@@ -720,14 +724,17 @@ sub hkeys {
 sub hvals {
     my ( $self, $key ) = @_;
 
-    return CORE::values %{ $self->_stash->{$key} };
+    confess '[hvals] ERR Operation against a key holding the wrong kind of value'
+         if $self->exists($key) and !$self->_is_hash($key);
+
+    return values %{ $self->_stash->{$key} };
 }
 
 sub hgetall {
     my ( $self, $key ) = @_;
 
     confess "[hgetall] ERR Operation against a key holding the wrong kind of value"
-        if $self->exists( $key ) and not $self->_is_hash($key);
+         if $self->exists($key) and !$self->_is_hash($key);
 
     return $self->exists( $key )
          ? %{ $self->_stash->{$key} }

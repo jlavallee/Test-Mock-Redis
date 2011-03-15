@@ -91,6 +91,12 @@ foreach my $r (@redi){
 
     is_deeply([sort $r->hkeys('hash')], [], "hkeys returned no keys for an empty hash");
 
+    $r->set('not a hash', 'foo bar');
+
+    throws_ok { $r->hkeys('not a hash') } 
+         qr/^\Q[hkeys] ERR Operation against a key holding the wrong kind of value\E/,
+         "hkeys on key that isn't a hash throws error";
+
     # OK seems inconsistient
     is $r->hmset('hash', qw/foo bar bar baz baz qux qux quux quux quuux/), 'OK', "hmset returns OK if it set some stuff";
 
@@ -99,11 +105,22 @@ foreach my $r (@redi){
 
     is_deeply { $r->hgetall("I don't exist") }, { }, "hgetall on non-existent key is empty";
 
-    $r->set('not a hash', 'foo bar');
-
     throws_ok { $r->hgetall('not a hash') } 
          qr/^\Q[hgetall] ERR Operation against a key holding the wrong kind of value\E/,
          "hgetall on key that isn't a hash throws error";
+
+
+    is_deeply [sort $r->hvals('hash')], [sort qw/bar baz qux quux quuux/],
+        "hvals all returned all values";
+
+    is_deeply [ $r->hvals("I don't exist") ], [ ], "hvals on non-existent key returned an empty list";
+
+    $r->set('not a hash', 'foo bar');
+
+    throws_ok { $r->hvals('not a hash') } 
+         qr/^\Q[hvals] ERR Operation against a key holding the wrong kind of value\E/,
+         "hvals on key that isn't a hash throws error";
+    
 
     is_deeply [ $r->hmget('hash', qw/foo bar baz/) ], [ qw/bar baz qux/ ],
         "hmget returns requested values";
