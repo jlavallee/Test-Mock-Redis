@@ -12,7 +12,7 @@ x   HDEL
 x   HEXISTS
 x   HGET
 x   HGETALL
-    HINCRBY
+x   HINCRBY
 x   HKEYS
 x   HLEN
 x   HMGET
