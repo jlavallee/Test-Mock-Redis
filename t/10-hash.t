@@ -15,7 +15,7 @@ x   HGETALL
     HINCRBY
 x   HKEYS
 x   HLEN
-    HMGET
+x   HMGET
 o   HMSET
 x   HSET
     HSETNX
@@ -104,6 +104,15 @@ foreach my $r (@redi){
     throws_ok { $r->hgetall('not a hash') } 
          qr/^\Q[hgetall] ERR Operation against a key holding the wrong kind of value\E/,
          "hgetall on key that isn't a hash throws error";
+
+    is_deeply [ $r->hmget('hash', qw/foo bar baz/) ], [ qw/bar baz qux/ ],
+        "hmget returns requested values";
+
+    is_deeply [ $r->hmget('hash', qw/blarg foo bar baz blorf/) ], [ undef, qw/bar baz qux/, undef ],
+        "hmget returns undef for missing values";
+
+    is_deeply [ $r->hmget('hash', qw/blarg blorf/) ], [ undef, undef ],
+        "hmget returns undef even if all values are missing";
 }
 
 
