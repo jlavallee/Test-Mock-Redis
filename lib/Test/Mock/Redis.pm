@@ -48,7 +48,7 @@ See perldoc Redis and the redis documentation at L<http://redis.io>
 
     It can be used in place of a Redis object for unit testing.
 
-    If you pass the server to "connect" to, it will be ignored.
+    It accepts the "server" argument, just like Redis.pm's new.
 
 =cut
 
