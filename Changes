@@ -9,4 +9,6 @@ Revision history for Test-Mock-Redis
         Fixed Test::Exception dependency
 0.04    Fri Feb 18
         Made error conditions consistent with Redis.pm's behavior
+0.07    Wed Oct  5
+        Fix for RT-71461, incorrect rename behavior
 
