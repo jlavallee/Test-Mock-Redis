@@ -313,6 +313,8 @@ sub type {
 sub keys :method {
     my ( $self, $match ) = @_;
 
+    confess q{[KEYS] ERR wrong number of arguments for 'keys' command} unless defined $match;
+
     # TODO: we're not escaping other meta-characters
     $match =~ s/(?<!\\)\*/.*/g;
     $match =~ s/(?<!\\)\?/.?/g;
