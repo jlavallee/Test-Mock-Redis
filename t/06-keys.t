@@ -76,6 +76,9 @@ foreach my $r (@redi){
 
     is( $r->get('newfoo'), 'foobar', 'rename worked');
 
+    is_deeply([sort $r->keys('*')],  [qw/bar baz newfoo/], 'rename removed foo');
+
+
     $r->set('foo', 'foobar');
     ok(! $r->renamenx('newfoo', 'foo'), 'renamenx returns false when destination key exists');
 

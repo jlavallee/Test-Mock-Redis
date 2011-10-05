@@ -337,6 +337,7 @@ sub rename {
     confess 'rename to existing key' if $whine && $self->_stash->{$to};
 
     $self->_stash->{$to} = $self->_stash->{$from};
+    delete $self->_stash->{$from};
     return 1;
 }
 
