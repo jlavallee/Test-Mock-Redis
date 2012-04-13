@@ -90,6 +90,8 @@ foreach my $o (@redi){
     ok($o->del($_), "del $_") foreach map {"key-$_"} ('next', 'left');
     ok(!$o->del('non-existing'), 'del non-existing');
 
+    is($o->type('zzzzzzz'), 'none', 'type of non-existent key');
+
     cmp_ok($o->type('foo'), 'eq', 'string', 'type');
 
     is($o->keys('key-*'), $key_next + 1, 'key-*');

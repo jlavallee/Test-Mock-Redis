@@ -292,7 +292,7 @@ sub type {
     my ( $self, $key ) = @_;
     # types are string, list, set, zset and hash
 
-    return undef unless $self->exists($key);
+    return 'none' unless $self->exists($key);
 
     my $type = ref $self->_stash->{$key};
 
