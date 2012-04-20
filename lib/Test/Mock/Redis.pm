@@ -38,7 +38,14 @@ This module is designed to function as a drop in replacement for
 Redis.pm for testing purposes.
 
 See perldoc Redis and the redis documentation at L<http://redis.io>
-    
+
+=head1 PERSISTENCE
+
+The "connection" to the mocked server (and its stored data) will persist beyond
+the object instance, just like a real Redis server. This means that you do not
+need to save the instance to this object in order to preserve your data; simply
+call C<new> with the same server parameter and the same instance will be
+returned, with all data preserved.
 
 =head1 SUBROUTINES/METHODS
 
