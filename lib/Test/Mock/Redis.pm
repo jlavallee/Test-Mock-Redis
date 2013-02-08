@@ -1059,6 +1059,14 @@ Salvatore Sanfilippo for redis, of course!
 
 Dobrica Pavlinusic & Pedro Melo for Redis.pm
 
+The following people have contributed to I<Test::Mock::Redis>:
+
+=over
+
+=item * Karen Etheridge
+
+=back
+
 =head1 LICENSE AND COPYRIGHT
 
 Copyright 2011 Jeff Lavallee.
