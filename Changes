@@ -1,18 +1,22 @@
 Revision history for Test-Mock-Redis
 
-0.01    Sun Feb 13 
+0.01    Feb 13 2011
         First version, released on an unsuspecting world.
-0.02    Mon Feb 14
+
+0.02    Feb 14 2011
         More redis functions, including auth, append, strlen, getset, mset & msetnx
-0.03    Wed Feb 16
+
+0.03    Feb 16 2011
         Pay attention to the server argument to new - now a singleton per server, just like redis
         Fixed Test::Exception dependency
-0.04    Fri Feb 18
+
+0.04    Feb 18 2011
         Made error conditions consistent with Redis.pm's behavior
-0.07    Wed Oct  5
+
+0.07    Oct  5 2011
         Fix for RT-71461, incorrect rename behavior
 
-0.08
+0.08    Apr 13 2012
         Correct type is returned for non-existent keys (RT#76534, Karen
         Etheridge)
 
