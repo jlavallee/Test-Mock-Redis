@@ -326,7 +326,10 @@ sub keys :method {
     $match =~ s/(?<!\\)\*/.*/g;
     $match =~ s/(?<!\\)\?/.?/g;
 
-    return @{[ sort { $a cmp $b } grep { /$match/ } keys %{ $self->_stash }]};
+    return @{[ sort { $a cmp $b }
+        grep { exists $self->_stash->{$_} }
+        grep { /$match/ }
+        keys %{ $self->_stash }]};
 }
 
 sub randomkey {
