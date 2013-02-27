@@ -20,3 +20,4 @@ t/boilerplate.t
 t/manifest.t
 t/pod.t
 t/tlib/Test/SpawnRedisServer.pm
+META.json
