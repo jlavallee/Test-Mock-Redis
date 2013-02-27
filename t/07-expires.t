@@ -38,6 +38,8 @@ foreach my $r (@redi){
 
     sleep 2;
 
+    is_deeply([ $r->keys('*') ], [ qw(baz foo) ], 'expired key removed from KEYS list');
+
     ok(! $r->exists('bar'), 'bar expired');
 
     ok(! $r->expireat('quizlebub', time + 1), "expireat on a key that doesn't exist returns false");
