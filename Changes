@@ -20,6 +20,6 @@ Revision history for Test-Mock-Redis
         Correct type is returned for non-existent keys (RT#76534, Karen
         Etheridge)
 
-0.09
+0.09    Feb 26 2013
         Expired keys are not returned in the KEYS list (Karen Etheridge)
 
