@@ -60,7 +60,7 @@ returned, with all data preserved.
 =cut
 
 sub _new_db {
-    tie my %hash, 'Test::Mock::Redis::PossiblyVolitile'; 
+    tie my %hash, 'Test::Mock::Redis::PossiblyVolatile';
     return \%hash;
 }
 
@@ -1161,7 +1161,7 @@ package Test::Mock::Redis::Set;
 sub new { return bless {}, shift }
 1;
 
-package Test::Mock::Redis::PossiblyVolitile;
+package Test::Mock::Redis::PossiblyVolatile;
 
 use strict; use warnings;
 use Tie::Hash;
