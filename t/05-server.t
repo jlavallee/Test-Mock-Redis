@@ -59,8 +59,11 @@ foreach my $r (@redi){
     eval{ $r->auth };
     like($@, qr/^\Q[auth] ERR wrong number of arguments for 'auth' command\E/, 'auth without a password dies');
 
-    ok($r->auth('foo'), 'auth with anything else returns true');
-
+    # as of redis 2.6 (?) this fails when auth is not enabled on the server
+    # eval{ $r->auth('foo') };
+    # like($@, qr/^\Q[auth] ERR Client sent AUTH, but no password is set\E/, 'auth when no password set dies');
+    # however, emulating this behavior is not likely to be useful - better to silently
+    # pretend that any auth worked than throw an error.
 
     for(0..15){
         $r->select($_);
@@ -106,7 +109,7 @@ foreach my $r (@redi){
 
     #use Data::Dumper; diag Dumper $info;
 
-    like($info->{last_save_time}, qr/^\d+$/, 'last save time is some digits');
+    like($info->{run_id},qr/^[0-9a-f]{40}/, 'run_id is 40 random hex chars');
 
     for(0..14){
         is($info->{"db$_"}, 'keys=1,expires=0', "db$_ info is correct");
@@ -119,9 +122,8 @@ foreach my $r (@redi){
 
     is($r->info->{'db0'}, 'keys=6,expires=5', 'db0 info now has six keys and five expire');
 
-
     ok($r->quit, 'quit returns true');
-    throws_ok { $r->quit } qr/^\QNot connected to any server\E\b/, '...even if we call it again';
+    ok(!$r->quit, 'quit returns false the second time');
 
     ok(! $r->ping, 'ping returns false after we quit');
 
