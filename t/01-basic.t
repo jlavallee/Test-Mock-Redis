@@ -95,7 +95,8 @@ foreach my $o (@redi){
     cmp_ok($o->type('foo'), 'eq', 'string', 'type');
 
     is($o->keys('key-*'), $key_next + 1, 'key-*');
-    is_deeply([$o->keys('key-*')], [@keys], 'keys');
+
+    is_deeply([sort $o->keys('key-*')], [sort @keys], 'keys');
 
     ok(my $key = $o->randomkey, 'randomkey');
 
