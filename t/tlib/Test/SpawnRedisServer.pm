@@ -16,7 +16,6 @@ sub redis {
 
   $fh->print("
     appendonly no
-    vm-enabled no
     daemonize no
     port $port
     bind 127.0.0.1
