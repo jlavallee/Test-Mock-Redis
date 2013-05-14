@@ -6,6 +6,9 @@ use strict;
 use Carp;
 use Config;
 use Scalar::Util qw/blessed/;
+use Class::Method::Modifiers;
+use Package::Stash;
+use namespace::clean;   # important: keep all sub imports above this line
 
 =head1 NAME
 
@@ -1178,6 +1181,88 @@ sub _make_zset {
         unless $self->_is_zset($key);
 }
 
+
+# MULTI/EXEC/DISCARD: http://redis.io/topics/transactions
+
+sub multi {
+    my ( $self ) = @_;
+
+    confess '[multi] ERR MULTI calls cannot be nested' if defined $self->{_multi_commands};
+
+    # set up the list for storing commands sent between MULTI and EXEC/DISCARD
+    $self->{_multi_commands} = [];
+
+    return 'OK';
+}
+
+# methods that return a list, rather than a single value
+my @want_list = qw(mget keys lrange smembers sinter sunion sdiff hmget hkeys hvals hgetall sort zrange zrevrange zrangebyscore);
+
+sub exec {
+    my ( $self ) = @_;
+
+    # we are going to commit all the changes we saved up;
+    # replay them now and return all their output
+
+    confess '[exec] ERR EXEC without MULTI' if not defined $self->{_multi_commands};
+
+    my @commands = @{$self->{_multi_commands}};
+    delete $self->{_multi_commands};
+
+    # replay all the queries that were queued up
+    # the returned result is a nested array of the results of all the commands
+    my @results = map {
+        my ($method, @args) = @$_;
+        my @result = $self->$method(@args);
+        (grep { $method eq $_ } @want_list)
+            ? \@result
+            : $result[0];
+    } @commands;
+
+    return @results;
+}
+
+sub discard {
+    my ( $self ) = @_;
+
+    confess '[discard] ERR DISCARD without MULTI' if not defined $self->{_multi_commands};
+
+    # discard all the accumulated commands, without executing them
+    delete $self->{_multi_commands};
+
+    return 'OK';
+}
+
+# now that we've defined all our subs, we need to wrap them all in logic that
+# can check if we are in the middle of a MULTI, and if so, queue up the
+# commands for later replaying.
+
+my %no_wrap_methods = (
+    new => 1,
+    multi => 1,
+    exec => 1,
+    discard => 1,
+    quit => 1,
+);
+
+my @wrapped_methods =
+    grep { !/^_/}
+    grep { not $no_wrap_methods{$_} }
+        Package::Stash->new(__PACKAGE__)->list_all_symbols('CODE');
+
+foreach my $method (@wrapped_methods)
+{
+    around $method => sub {
+        my $orig = shift;
+        my $self = shift;
+
+        # pass command through if we are not handling a MULTI
+        return $self->$orig(@_) if not defined $self->{_multi_commands};
+
+        push @{$self->{_multi_commands}}, [ $method, @_ ];
+        return 'QUEUED';
+    };
+}
 
 
 1; # End of Test::Mock::Redis
