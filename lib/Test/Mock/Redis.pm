@@ -8,6 +8,7 @@ use Config;
 use Scalar::Util qw/blessed/;
 use Class::Method::Modifiers;
 use Package::Stash;
+use Try::Tiny;
 use namespace::clean;   # important: keep all sub imports above this line
 
 =head1 NAME
@@ -1211,13 +1212,20 @@ sub exec {
 
     # replay all the queries that were queued up
     # the returned result is a nested array of the results of all the commands
+    my @exceptions;
     my @results = map {
         my ($method, @args) = @$_;
-        my @result = $self->$method(@args);
+        my @result =
+            try { $self->$method(@args) }
+            catch { push @exceptions, $_; (); };
         (grep { $method eq $_ } @want_list)
             ? \@result
             : $result[0];
     } @commands;
+
+    s/^\[\w+\] // for @exceptions;
+
+    confess('[exec] ', join('; ', @exceptions)) if @exceptions;
 
     return @results;
 }

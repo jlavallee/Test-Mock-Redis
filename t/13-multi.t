@@ -83,4 +83,30 @@ cmp_deeply(
 );
 
 
+# an error in replaying a transaction should not abort subsequent commands
+# note: this mirrors behaviour in version 2.6.5+
+
+is($redis->multi, 'OK', 'multi transaction started');
+is($redis->set('transaction_key_1', 'foo'), 'QUEUED', 'set operation recorded');
+is($redis->hset('transaction_key_1', 'bar', '9'), 'QUEUED', 'hset operation recorded');
+is($redis->hset('transaction_key_3', 'a', '9'), 'QUEUED', 'hset operation recorded');
+
+like(
+    exception { $redis->exec },
+    qr/^\[exec\] ERR Operation against a key holding the wrong kind of value/,
+    'a bad transaction results in an exception',
+);
+
+is($redis->get('transaction_key_1'), 'foo', 'the first command was executed');
+
+cmp_deeply(
+    { $redis->hgetall('transaction_key_3') },
+    {
+        a => '9',
+        b => '2',
+    },
+    'commands after the error were still executed',
+);
+
+
 done_testing;
