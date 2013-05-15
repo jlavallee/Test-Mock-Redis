@@ -115,7 +115,7 @@ sub auth {
 
     confess '[auth] ERR wrong number of arguments for \'auth\' command' unless @_;
 
-    return 1;
+    return 'OK';
 }
 
 sub quit {
@@ -137,7 +137,7 @@ sub set {
     my ( $self, $key, $value ) = @_;
 
     $self->_stash->{$key} = "$value";
-    return 1;
+    return 'OK';
 }
 
 sub setnx {
@@ -154,7 +154,7 @@ sub setex {
     my ( $self, $key, $ttl, $value ) = @_;
     $self->set($key, $value);
     $self->expire($key, $ttl);
-    return 1;
+    return 'OK';
 }
 
 sub expire {
@@ -276,7 +276,7 @@ sub mset {
 
     @{ $self->_stash }{keys %things} = (values %things);
 
-    return 1;
+    return 'OK';
 }
 
 sub msetnx {
@@ -354,7 +354,7 @@ sub rename {
 
     $self->_stash->{$to} = $self->_stash->{$from};
     delete $self->_stash->{$from};
-    return 1;
+    return 'OK';
 }
 
 sub renamenx {
@@ -423,7 +423,7 @@ sub ltrim {
     my ( $self, $key, $start, $end ) = @_;
 
     $self->_stash->{$key} = [ @{ $self->_stash->{$key} }[$start..$end] ]; 
-    return 1;
+    return 'OK';
 }
 
 sub lindex {
@@ -436,7 +436,7 @@ sub lset {
     my ( $self, $key, $index, $value ) = @_;
 
     $self->_stash->{$key}->[$index] = "$value";
-    return 1;
+    return 'OK';
 }
 
 sub lrem {
@@ -478,7 +478,7 @@ sub select {
     my ( $self, $index ) = @_;
 
     $self->{_db_index} = $index;
-    return 1;
+    return 'OK';
 }
 
 sub _stash {
@@ -803,7 +803,7 @@ sub sort {
 sub save { 
     my $self = shift;
     $self->{_last_save} = time;
-    return 1;
+    return 'OK';
 }
 
 sub bgsave { 
