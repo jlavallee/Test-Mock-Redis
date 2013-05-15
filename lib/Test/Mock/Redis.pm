@@ -375,7 +375,8 @@ sub rpush {
 
     $self->_make_list($key);
 
-    return push @{ $self->_stash->{$key} }, "$value";
+    push @{ $self->_stash->{$key} }, "$value";
+    return scalar @{ $self->_stash->{$key} };
 }
 
 sub lpush {
@@ -386,7 +387,8 @@ sub lpush {
 
     $self->_make_list($key);
 
-    return unshift @{ $self->_stash->{$key} }, "$value";
+    unshift @{ $self->_stash->{$key} }, "$value";
+    return scalar @{ $self->_stash->{$key} };
 }
 
 sub rpushx {
@@ -394,7 +396,8 @@ sub rpushx {
 
     return unless $self->_is_list($key);
 
-    return push @{ $self->_stash->{$key} }, "$value";
+    push @{ $self->_stash->{$key} }, "$value";
+    return scalar @{ $self->_stash->{$key} };
 }
 
 sub lpushx {
@@ -402,7 +405,8 @@ sub lpushx {
 
     return unless $self->_is_list($key);
 
-    return unshift @{ $self->_stash->{$key} }, "$value";
+    unshift @{ $self->_stash->{$key} }, "$value";
+    return scalar @{ $self->_stash->{$key} };
 }
 
 sub llen {
