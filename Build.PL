@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Module::Build;
+use Module::Build 0.4004;
 
 my $builder = Module::Build->new(
     perl                => '5.006_001',
@@ -23,12 +23,17 @@ my $builder = Module::Build->new(
                     },
     },
     build_requires => {
-        'Test::More'      => 0,
-        'Test::Exception' => 0,
+        'Test::More'        => '0.88',
+        'Test::Exception'   => 0,
+        'Test::Fatal'       => 0,
+        'Test::Deep'        => 0,
     },
     requires => {
-        'Test::More'   => 0,
-        'Scalar::Util' => 0,
+        'Scalar::Util'      => 0,
+        'Class::Method::Modifiers' => 0,
+        'Package::Stash'    => '0.34',
+        'namespace::clean'  => 0,
+        'Try::Tiny'         => 0,
     },
     configure_requires => { 'Module::Build' => 0.4 },
     add_to_cleanup     => [ 'Test-Mock-Redis-*' ],
