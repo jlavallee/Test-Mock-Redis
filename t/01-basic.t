@@ -7,7 +7,7 @@ use warnings;
 use strict;
 use lib 't/tlib';
 use Test::More;
-use Test::Exception;
+use Test::Fatal;
 use Test::Mock::Redis;
 
 ok(my $r = Test::Mock::Redis->new, 'pretended to connect to our test redis-server');
@@ -330,7 +330,7 @@ foreach my $o (@redi){
     ok(!$o->ping(), 'ping() also false after shutdown()');
 
     sleep(1);
-    throws_ok sub { $type->new(server => $srv) },
+    like exception { $type->new(server => $srv) },
       qr/Could not connect to Redis server at $srv/,
       'Failed connection throws exception';
 

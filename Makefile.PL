@@ -9,7 +9,6 @@ WriteMakefile
                    'Package::Stash' => '0.34',
                    'Scalar::Util' => 0,
                    'Test::Deep' => 0,
-                   'Test::Exception' => 0,
                    'Test::Fatal' => 0,
                    'Test::More' => '0.88',
                    'Try::Tiny' => 0,

@@ -24,7 +24,6 @@ my $builder = Module::Build->new(
     },
     build_requires => {
         'Test::More'        => '0.88',
-        'Test::Exception'   => 0,
         'Test::Fatal'       => 0,
         'Test::Deep'        => 0,
     },
