@@ -23,5 +23,22 @@ Revision history for Test-Mock-Redis
 0.09    Feb 26 2013
         Expired keys are not returned in the KEYS list (Karen Etheridge)
 
-0.10    
-        info output brought up-to-date w/redis 2.6
+0.10
+        'info' output brought up-to-date w/redis 2.6
+
+        fixed output for these commands: (Karen Etheridge)
+            should return OK, not 1:
+                auth
+                set
+                setex
+                mset
+                rename
+                ltrim
+                lset
+                select
+                save
+            should return a list length, not the list itself:
+                rpush
+                lpush
+                rpushx
+                lpushx
