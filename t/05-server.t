@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use lib 't/tlib';
 use Test::More;
-use Test::Exception;
 use Test::Mock::Redis;
 
 

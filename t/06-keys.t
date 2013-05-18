@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib 't/tlib';
 use Test::More;
-use Test::Exception;
+use Test::Fatal;
 use Test::Mock::Redis;
 
 =pod
@@ -65,10 +65,10 @@ foreach my $r (@redi){
 
     ok(grep { $_ eq $rand } qw/foo bar baz/, 'random returned one of our keys');
 
-    throws_ok { $r->rename('foo', 'foo') } qr/^\Q[rename] ERR source and destination objects are the same\E/,
+    like exception { $r->rename('foo', 'foo') }, qr/^\Q[rename] ERR source and destination objects are the same\E/,
         'rename with identical source and dest returns false';
 
-    throws_ok { $r->rename('quizlebub', 'foo') } qr/^\Q[rename] ERR no such key\E/,
+    like exception { $r->rename('quizlebub', 'foo') }, qr/^\Q[rename] ERR no such key\E/,
          "rename with source that doesn't exist returns false";
 
 
@@ -79,7 +79,7 @@ foreach my $r (@redi){
     is_deeply([sort $r->keys('*')],  [qw/bar baz newfoo/], 'rename removed foo');
 
 
-    throws_ok { $r->keys } qr/^\Q[KEYS] ERR wrong number of arguments for 'keys' command\E/,
+    like exception { $r->keys }, qr/^\Q[KEYS] ERR wrong number of arguments for 'keys' command\E/,
         'keys with no argument complains';
 
     $r->set('foo', 'foobar');
