@@ -38,7 +38,7 @@ foreach my $r (@redi){
 
     sleep 2;
 
-    is_deeply([ $r->keys('*') ], [ qw(baz foo) ], 'expired key removed from KEYS list');
+    is_deeply([ sort $r->keys('*') ], [ qw(baz foo) ], 'expired key removed from KEYS list');
 
     ok(! $r->exists('bar'), 'bar expired');
 
