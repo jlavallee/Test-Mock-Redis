@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib 't/tlib';
 use Test::More;
-use Test::Exception;
+use Test::Fatal;
 use Test::Mock::Redis;
 
 =pod
@@ -64,13 +64,13 @@ foreach my $r (@redi){
 
     is $r->get('hash'), 'blarg', "even though it squashed it";
 
-    throws_ok { $r->hset('hash', 'foo', 'foobar') } 
+    like exception { $r->hset('hash', 'foo', 'foobar') },
         qr/^\Q[hset] ERR Operation against a key holding the wrong kind of value\E/,
         "hset throws error when we overwrite a string with a hash";
 
     ok ! $r->hexists('blarg', 'blorf'), "hexists on a hash that doesn't exist returns false";
 
-    throws_ok { $r->hexists('hash', 'blarg') } 
+    like exception { $r->hexists('hash', 'blarg') },
         qr/^\Q[hexists] ERR Operation against a key holding the wrong kind of value\E/,
         "hexists on a field that's not a hash throws error";
 
@@ -93,7 +93,7 @@ foreach my $r (@redi){
 
     $r->set('not a hash', 'foo bar');
 
-    throws_ok { $r->hkeys('not a hash') } 
+    like exception { $r->hkeys('not a hash') },
          qr/^\Q[hkeys] ERR Operation against a key holding the wrong kind of value\E/,
          "hkeys on key that isn't a hash throws error";
 
@@ -105,7 +105,7 @@ foreach my $r (@redi){
 
     is_deeply { $r->hgetall("I don't exist") }, { }, "hgetall on non-existent key is empty";
 
-    throws_ok { $r->hgetall('not a hash') } 
+    like exception { $r->hgetall('not a hash') },
          qr/^\Q[hgetall] ERR Operation against a key holding the wrong kind of value\E/,
          "hgetall on key that isn't a hash throws error";
 
@@ -117,7 +117,7 @@ foreach my $r (@redi){
 
     $r->set('not a hash', 'foo bar');
 
-    throws_ok { $r->hvals('not a hash') } 
+    like exception { $r->hvals('not a hash') },
          qr/^\Q[hvals] ERR Operation against a key holding the wrong kind of value\E/,
          "hvals on key that isn't a hash throws error";
     
@@ -131,11 +131,11 @@ foreach my $r (@redi){
     is_deeply [ $r->hmget('hash', qw/blarg blorf/) ], [ undef, undef ],
         "hmget returns undef even if all values are missing";
 
-    throws_ok { $r->hincrby('hash', 'foo') }
+    like exception { $r->hincrby('hash', 'foo') },
         qr/^\Q[hincrby] ERR wrong number of arguments for 'hincrby' command\E/,
         "hincerby dies when called with the wrong number of arguments";
 
-    throws_ok { $r->hincrby('hash', 'foo', 1) }
+    like exception { $r->hincrby('hash', 'foo', 1) },
         qr/^\Q[hincrby] ERR hash value is not an integer\E/, 
          "hincrby dies when a non-integer is incremented";
 

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib 't/tlib';
 use Test::More;
-use Test::Exception;
+use Test::Fatal;
 use Test::Mock::Redis;
 
 =pod
@@ -147,11 +147,11 @@ foreach my $r (@redi){
 
     $r->set('justakey', 'foobar');    
 
-    throws_ok { $r->smove('justakey', 'set', 'foo') } 
+    like exception { $r->smove('justakey', 'set', 'foo') },
         qr/^\Q[smove] ERR Operation against a key holding the wrong kind of value\E/,
          "smove dies when source isn't a set";
 
-    throws_ok { $r->smove('set', 'justakey', 'foo') } 
+    like exception { $r->smove('set', 'justakey', 'foo') },
         qr/^\Q[smove] ERR Operation against a key holding the wrong kind of value\E/,
          "smove dies when dest isn't a set";
 
