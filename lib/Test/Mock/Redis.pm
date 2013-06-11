@@ -9,7 +9,7 @@ use Scalar::Util qw/blessed/;
 use Class::Method::Modifiers;
 use Package::Stash;
 use Try::Tiny;
-use namespace::clean;   # important: keep all sub imports above this line
+use namespace::clean;   # important: clean all subs imported above this line
 
 =head1 NAME
 
