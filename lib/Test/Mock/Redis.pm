@@ -1198,6 +1198,7 @@ sub multi {
 
 # methods that return a list, rather than a single value
 my @want_list = qw(mget keys lrange smembers sinter sunion sdiff hmget hkeys hvals hgetall sort zrange zrevrange zrangebyscore);
+my %want_list = map { $_ => 1 } @want_list;
 
 sub exec {
     my ( $self ) = @_;
@@ -1218,9 +1219,7 @@ sub exec {
         my @result =
             try { $self->$method(@args) }
             catch { push @exceptions, $_; (); };
-        (grep { $method eq $_ } @want_list)
-            ? \@result
-            : $result[0];
+        $want_list{$method} ? \@result : $result[0];
     } @commands;
 
     s/^\[\w+\] // for @exceptions;
