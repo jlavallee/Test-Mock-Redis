@@ -1022,6 +1022,13 @@ sub zremrangebyscore {
     return scalar @remove;
 }
 
+=head1 PIPELINING
+
+See L<Redis/PIPELINING> -- most methods support the use of a callback sub as
+the final argument. For this implementation, the callback sub will be called
+immediately (before the result of the original method is returned), and
+C<wait_all_responses> does nothing.  Combining pipelining with C<multi>/C<exec>
+is not supported.
 
 =head1 TODO
 
@@ -1270,6 +1277,82 @@ foreach my $method (@transaction_wrapped_methods)
         return 'QUEUED';
     };
 }
+
+
+# PIPELINING SUPPORT
+
+# these method modifications must be done after (over top of) the modification
+# for transactions, as we need to check for/extract the $cb first.
+
+my %no_pipeline_wrap_methods = (
+    new => 1,
+    multi => 1,
+    discard => 1,
+    quit => 1,
+    ping => 1,
+    subscribe => 1,
+    unsubscribe => 1,
+    psubscribe => 1,
+    punsubscribe => 1,
+    wait_all_responses => 1,
+);
+
+my @pipeline_wrapped_methods =
+    grep { !/^_/}
+    grep { not $no_pipeline_wrap_methods{$_} }
+        Package::Stash->new(__PACKAGE__)->list_all_symbols('CODE');
+
+# this is a bit messy, and the wantarray logic may not be quite right.
+# Alternatively, we could implement all this by reusing the logic in the real
+# Redis.pm -- subclass Redis, override new/multi/exec/discard (and probably
+# some other special functions), and have __run_cmd use a dispatch table to
+# call all our overridden implementations.
+
+foreach my $method (@pipeline_wrapped_methods)
+{
+    around $method => sub {
+        my $orig = shift;
+        my $self = shift;
+        my @args = @_;
+
+        my $cb = @args && ref $args[-1] eq 'CODE' ? pop @args : undef;
+
+        return $self->$orig(@args) if not $cb;
+
+        # this may be officially supported eventually -- see
+        # https://github.com/melo/perl-redis/issues/17
+        # and "Pipeline management" in the Redis docs
+        # To make this work, we just need to special-case exec, to collect all the
+        # results and errors in tuples and send that to the $cb
+        die 'cannot combine pipelining with MULTI' if $self->{_multi_commands};
+
+        # We could also implement this with a queue, not bothering to process
+        # the commands until wait_all_responses is called - but then we need to
+        # make sure to call wait_all_responses explicitly as soon as a command
+        # is issued without a $cb.
+
+        my $error;
+        my (@result) = try
+        {
+            $self->$orig(@args);
+        }
+        catch
+        {
+            $error = $_;
+            ();
+        };
+
+        $cb->(
+            # see notes above - this logic may not be quite right
+            ( $want_list{$method} ? \@result : $result[0] ),
+            $error,
+        );
+        return 1;
+    };
+}
+
+# in a real Redis system, this will make all outstanding callbacks get called.
+sub wait_all_responses {}
 
 
 1; # End of Test::Mock::Redis
