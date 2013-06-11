@@ -1245,7 +1245,7 @@ sub discard {
 # can check if we are in the middle of a MULTI, and if so, queue up the
 # commands for later replaying.
 
-my %no_wrap_methods = (
+my %no_transaction_wrap_methods = (
     new => 1,
     multi => 1,
     exec => 1,
@@ -1253,12 +1253,12 @@ my %no_wrap_methods = (
     quit => 1,
 );
 
-my @wrapped_methods =
+my @transaction_wrapped_methods =
     grep { !/^_/}
-    grep { not $no_wrap_methods{$_} }
+    grep { not $no_transaction_wrap_methods{$_} }
         Package::Stash->new(__PACKAGE__)->list_all_symbols('CODE');
 
-foreach my $method (@wrapped_methods)
+foreach my $method (@transaction_wrapped_methods)
 {
     around $method => sub {
         my $orig = shift;
