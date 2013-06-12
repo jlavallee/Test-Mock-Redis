@@ -1188,7 +1188,7 @@ sub _make_zset {
 sub multi {
     my ( $self ) = @_;
 
-    confess '[multi] ERR MULTI calls cannot be nested' if defined $self->{_multi_commands};
+    confess '[multi] ERR MULTI calls can not be nested' if defined $self->{_multi_commands};
 
     # set up the list for storing commands sent between MULTI and EXEC/DISCARD
     $self->{_multi_commands} = [];
