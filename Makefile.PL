@@ -15,7 +15,8 @@ WriteMakefile
                            'Class::Method::Modifiers' => 0,
                            'Test::More' => '0.88',
                            'namespace::clean' => 0,
-                           'Test::Deep' => 0
+                           'Test::Deep' => 0,
+                           'Test::Deep::UnorderedPairs' => 0
                          }
         )
 ;
