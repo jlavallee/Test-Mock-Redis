@@ -26,6 +26,7 @@ my $builder = Module::Build->new(
         'Test::More'        => '0.88',
         'Test::Fatal'       => 0,
         'Test::Deep'        => 0,
+        'Test::Deep::UnorderedPairs' => 0,
     },
     requires => {
         'Scalar::Util'      => 0,
