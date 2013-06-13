@@ -9,14 +9,14 @@ WriteMakefile
           'VERSION_FROM' => 'lib/Test/Mock/Redis.pm',
           'PREREQ_PM' => {
                            'Try::Tiny' => 0,
+                           'Test::Deep::UnorderedPairs' => 0,
                            'Scalar::Util' => 0,
                            'Package::Stash' => '0.34',
                            'Test::Fatal' => 0,
                            'Class::Method::Modifiers' => 0,
-                           'Test::More' => '0.88',
                            'namespace::clean' => 0,
-                           'Test::Deep' => 0,
-                           'Test::Deep::UnorderedPairs' => 0
+                           'Test::More' => '0.88',
+                           'Test::Deep' => 0
                          }
         )
 ;
