@@ -47,5 +47,5 @@ Revision history for Test-Mock-Redis
         atomic transactions ('multi', 'exec', 'discard') now supported:
         http://redis.io/topics/transactions (Karen Etheridge)
 
-0.12
+0.12    Jun 12 2013
         support for pipelined calls, using callback subs (Karen Etheridge)
