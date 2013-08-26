@@ -61,14 +61,31 @@ returned, with all data preserved.
 
     It accepts the "server" argument, just like Redis.pm's new.
 
+=head2 num_databases
+
+Redis ships with a default of 16 databases, and that's what this module 
+handles by default. If you need to change that, do
+
+    use Test::Mock::Redis num_databases => 21;
+
 =cut
+
+my $NUM_DBS = 16;
+
+sub import {
+    my ($class, %args) = @_;
+
+    if ($args{num_databases}){
+        $NUM_DBS = $args{num_databases};
+    }
+}
+
 
 sub _new_db {
     tie my %hash, 'Test::Mock::Redis::PossiblyVolatile';
     return \%hash;
 }
 
-my $NUM_DBS = 16;
 
 sub _defaults {
     my @hex = (0..9, 'a'..'f');
@@ -1257,6 +1274,7 @@ my %no_transaction_wrap_methods = (
     exec => 1,
     discard => 1,
     quit => 1,
+    import => 1,
 );
 
 my @transaction_wrapped_methods =
