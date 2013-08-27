@@ -93,6 +93,7 @@ sub _defaults {
         _quit      => 0,
         _shutdown  => 0,
         _stash     => [ map { _new_db } (1..$NUM_DBS) ],
+        _num_dbs   => $NUM_DBS,
         _db_index  => 0,
         _up_since  => time,
         _last_save => time,
