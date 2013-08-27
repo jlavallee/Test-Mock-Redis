@@ -37,12 +37,11 @@ cmp_deeply( [ $r2->keys('*') ], bag('key1', 'key2'));
 #
 # allow alternate syntax, declare it in new() instead of use()
 #
-Test::Mock::Redis->import(num_databases => 16);
-my $r3 = Test::Mock::Redis->new(server => '3.3.3.3:3333', num_databases => 20);
+my $r3 = Test::Mock::Redis->new(server => '3.3.3.3:3333', num_databases => 30);
 $r3->set('key-in-default-db-0', 'foobar');
 
 # now this will pass
-is exception { $r3->select(19) }, undef;
+is exception { $r3->select(29) }, undef;
 
 # and this won't include key-in-default-db-0
 $r3->set('key1', 'foobar');
