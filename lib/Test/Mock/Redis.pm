@@ -1131,6 +1131,8 @@ The following people have contributed to I<Test::Mock::Redis>:
 
 =item * Karen Etheridge
 
+=item * Kevin Goess
+
 =back
 
 =head1 LICENSE AND COPYRIGHT
