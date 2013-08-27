@@ -68,6 +68,10 @@ handles by default. If you need to change that, do
 
     use Test::Mock::Redis num_databases => 21;
 
+or
+
+    $r = Test::Mock::Redis->new(num_databases => 21);
+
 =cut
 
 my $NUM_DBS = 16;
@@ -88,11 +92,15 @@ sub _new_db {
 
 
 sub _defaults {
+    my ($class, %args) = @_;
+
+    my $num_dbs = $args{num_databases} || $NUM_DBS;
+    
     my @hex = (0..9, 'a'..'f');
     return (
         _quit      => 0,
         _shutdown  => 0,
-        _stash     => [ map { _new_db } (1..$NUM_DBS) ],
+        _stash     => [ map { _new_db } (1..$num_dbs) ],
         _db_index  => 0,
         _up_since  => time,
         _last_save => time,
@@ -116,8 +124,12 @@ sub new {
         $instances->{$server}->{_quit} = 0;
         return $instances->{$server};
     }
+    my @defaults_args = (
+        $args{num_databases} ? ( num_databases => $args{num_databases} ) : (),
+    );
+    
 
-    my $self = bless {$class->_defaults, server => $server}, $class;
+    my $self = bless {$class->_defaults(@defaults_args), server => $server}, $class;
 
     $instances->{$server} = $self;
 
@@ -501,6 +513,11 @@ sub rpop {
 
 sub select {
     my ( $self, $index ) = @_;
+
+    my $max_index = $#{ $self->{_stash} };
+    if ($index > $max_index ){
+        die "You called select($index), but max allowed is $max_index unless you configure more databases"; 
+    }
 
     $self->{_db_index} = $index;
     return 'OK';
