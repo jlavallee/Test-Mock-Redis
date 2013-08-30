@@ -125,7 +125,7 @@ sub new {
         return $instances->{$server};
     }
 
-    my $self = bless {$class->_defaults(), server => $server}, $class;
+    my $self = bless {$class->_defaults, server => $server}, $class;
 
     $instances->{$server} = $self;
 
