@@ -35,9 +35,11 @@ cmp_deeply( [ $r2->keys('*') ], bag('key1', 'key2'));
 
 
 #
-# allow alternate syntax, declare it in new() instead of use()
+# allow alternate syntax, a method that says what it does, if the user wants
+# to change it during the run of the test
 #
-my $r3 = Test::Mock::Redis->new(server => '3.3.3.3:3333', num_databases => 30);
+Test::Mock::Redis::change_num_databases(30);
+my $r3 = Test::Mock::Redis->new(server => '3.3.3.3:3333');
 $r3->set('key-in-default-db-0', 'foobar');
 
 # now this will pass
