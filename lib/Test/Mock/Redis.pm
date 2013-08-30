@@ -96,8 +96,6 @@ sub _new_db {
 
 
 sub _defaults {
-    my ($class, %args) = @_;
-
     my @hex = (0..9, 'a'..'f');
     return (
         _quit      => 0,
