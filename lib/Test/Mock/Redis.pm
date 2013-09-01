@@ -68,6 +68,10 @@ handles by default. If you need to change that, do
 
     use Test::Mock::Redis num_databases => 21;
 
+or at run-time
+
+    Test::Mock::Redis::change_num_databases(21);
+
 =cut
 
 my $NUM_DBS = 16;
@@ -76,8 +80,12 @@ sub import {
     my ($class, %args) = @_;
 
     if ($args{num_databases}){
-        $NUM_DBS = $args{num_databases};
+        change_num_databases($args{num_databases});
     }
+}
+
+sub change_num_databases {
+    $NUM_DBS = shift;
 }
 
 
@@ -502,6 +510,11 @@ sub rpop {
 
 sub select {
     my ( $self, $index ) = @_;
+
+    my $max_index = $#{ $self->{_stash} };
+    if ($index > $max_index ){
+        die "You called select($index), but max allowed is $max_index unless you configure more databases"; 
+    }
 
     $self->{_db_index} = $index;
     return 'OK';
@@ -1278,6 +1291,7 @@ my %no_transaction_wrap_methods = (
     discard => 1,
     quit => 1,
     import => 1,
+    change_num_databases => 1,
 );
 
 my @transaction_wrapped_methods =
