@@ -49,3 +49,9 @@ Revision history for Test-Mock-Redis
 
 0.12    Jun 12 2013
         support for pipelined calls, using callback subs (Karen Etheridge)
+
+0.13    Aug 27 2013
+        support for changing number of available databases (Kevin Goess)
+
+0.14    Aug 31 2013
+        change_num_databases class method added (Kevin Goess)
