@@ -1146,6 +1146,8 @@ The following people have contributed to I<Test::Mock::Redis>:
 
 =item * Kevin Goess
 
+=item * Neil Bowers
+
 =back
 
 =head1 LICENSE AND COPYRIGHT
