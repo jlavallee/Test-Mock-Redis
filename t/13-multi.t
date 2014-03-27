@@ -87,6 +87,8 @@ foreach my $o (@redi)
 
     # successful transactions
 
+    is($redis->watch('transaction_key_3'), 'OK', 'watch command');
+
     is($redis->multi, 'OK', 'multi transaction started');
     is($redis->hmset('transaction_key_3', qw(a 1 b 2)), 'QUEUED', 'hmset operation recorded');
     cmp_deeply([ $redis->keys('transaction_key_*') ], [ 'QUEUED' ], 'keys operation recorded');
@@ -104,6 +106,8 @@ foreach my $o (@redi)
         'transaction finished, returning the results of all queries',
     );
 
+    is($redis->unwatch(), 'OK', 'unwatch command');
+
     cmp_deeply(
         { $redis->hgetall('transaction_key_3') },
         {
@@ -112,7 +116,6 @@ foreach my $o (@redi)
         },
         'hash data successfully recorded',
     );
-
 
     # an error in replaying a transaction should not abort subsequent commands
     # note: this mirrors behaviour in version 2.6.5+

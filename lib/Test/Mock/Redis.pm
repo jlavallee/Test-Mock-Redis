@@ -1282,6 +1282,22 @@ sub discard {
     return 'OK';
 }
 
+sub watch {
+    my ($self) = shift;
+
+    confess '[watch] ERR wrong number of arguments for \'watch\' command' unless @_;
+
+    return 'OK';
+}
+
+sub unwatch {
+    my ($self) = shift;
+
+    confess '[error] ERR wrong number of arguments for \'unwatch\' command' if @_;
+
+    return 'OK';
+}
+
 # now that we've defined all our subs, we need to wrap them all in logic that
 # can check if we are in the middle of a MULTI, and if so, queue up the
 # commands for later replaying.
