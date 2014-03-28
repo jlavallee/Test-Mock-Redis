@@ -52,6 +52,8 @@ foreach my $o (@redi){
     ok($o->set('test-undef' => 42), 'set test-undef');
     ok($o->exists('test-undef'), 'exists undef');
 
+
+
     # Big sized keys
     for my $size (10_000, 100_000, 500_000, 1_000_000, 2_500_000) {
       my $v = 'a' x $size;
@@ -87,7 +89,7 @@ foreach my $o (@redi){
       is($o->decrby('test-decrby', 7), -($_ * 7), 'decrby 7');
     }
 
-    ok($o->del($_), "del $_") foreach map {"key-$_"} ('next', 'left');
+    is($o->del(map {"key-$_"} ('next', 'left')), 2, 'del multiple keys');
     ok(!$o->del('non-existing'), 'del non-existing');
 
     is($o->type('zzzzzzz'), 'none', 'type of non-existent key');
