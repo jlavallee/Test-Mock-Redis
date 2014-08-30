@@ -320,11 +320,14 @@ sub msetnx {
 }
 
 sub del {
-    my ( $self, $key ) = @_;
+    my ( $self, @keys ) = @_;
 
-    my $ret = $self->exists($key);
+    my $ret = 0;
 
-    delete $self->_stash->{$key};
+    for my $key (@keys) {
+        $ret++ if $self->exists($key);
+        delete $self->_stash->{$key};
+    }
 
     return $ret;
 }
