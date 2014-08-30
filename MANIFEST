@@ -19,6 +19,7 @@ t/11-sets.t
 t/12-sorted-sets.t
 t/13-multi.t
 t/14-pipeline.t
+t/15-import.t
 t/boilerplate.t
 t/manifest.t
 t/pod.t
