@@ -104,6 +104,8 @@ sub list_exactly_contains {
     for my $i (0 .. $#elements) {
         is $r->lindex($list, $i), $elements[$i];
     }
+
+    is $r->lindex($list, $#elements + 1), undef;
 }
 
 done_testing();
