@@ -442,6 +442,16 @@ sub lpushx {
     return scalar @{ $self->_stash->{$key} };
 }
 
+sub rpoplpush {
+    my ( $self, $source_key, $destination_key ) = @_;
+
+    my $popped_element = $self->rpop( $source_key ) or return;
+
+    $self->lpush( $destination_key, $popped_element );
+
+    return $popped_element;
+}
+
 sub llen {
     my ( $self, $key ) = @_;
 

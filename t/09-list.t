@@ -82,10 +82,12 @@ foreach my $r (@redi){
     $r->lpush('list', $_) for 0..9; # just for rpop
     is $r->rpop('list'), $_ for 0..9;
 
+    # TODO rpush( 'list', 0..9 ) should also work
+
     # rpushlpop
     # Setup...
-    $r->rpush(source => 'a', 'b', 'c');
-    $r->rpush(destination => 'x', 'y', 'z');
+    $r->rpush(source => $_) for 'a', 'b', 'c';
+    $r->rpush(destination => $_) for 'x', 'y', 'z';
 
     is $r->rpoplpush('list-that-does-not-exist', 'dummy'), undef;
     is $r->rpoplpush('source', 'destination'), 'c';
