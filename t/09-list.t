@@ -81,6 +81,29 @@ foreach my $r (@redi){
 
     $r->lpush('list', $_) for 0..9; # just for rpop
     is $r->rpop('list'), $_ for 0..9;
+
+    # rpushlpop
+    # Setup...
+    $r->rpush(source => 'a', 'b', 'c');
+    $r->rpush(destination => 'x', 'y', 'z');
+
+    is $r->rpoplpush('list-that-does-not-exist', 'dummy'), undef;
+    is $r->rpoplpush('source', 'destination'), 'c';
+
+    # list_exactly_contains 'source', 'a', 'b';
+    while ( my ( $k, $v ) = ( 0 => 'a', 1 => 'b', 2 => undef ) ) {
+        is $r->lindex( 'source', $k ), $v;
+    }
+
+    while ( my ( $k, $v ) = ( 0 => 'c', 1 => 'x', 2 => 'y', 3 => 'z', 4 => undef ) ) {
+        is $r->lindex( 'destination', $k ), $v;
+    }
+
+    is $r->poplpush('destination', 'destination'), 'z';
+
+    while ( my ( $k, $v ) = ( 0 => 'z', 1 => 'c', 2 => 'x', 3 => 'y', 4 => undef ) ) {
+        is $r->lindex( 'destination', $k ), $v;
+    }
 }
 
 done_testing();
