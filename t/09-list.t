@@ -91,21 +91,21 @@ foreach my $r (@redi){
 
     is $r->rpoplpush('list-that-does-not-exist', 'dummy'), undef;
     is $r->rpoplpush('source', 'destination'), 'c';
-    list_exactly_contains(source => 'a', 'b');
-    list_exactly_contains(destination => 'c', 'x', 'y', 'z');
+    list_exactly_contains($r, source => 'a', 'b');
+    list_exactly_contains($r, destination => 'c', 'x', 'y', 'z');
 
     is $r->rpoplpush(destination => 'destination'), 'z';
-    list_exactly_contains(destination => 'z', 'c', 'x', 'y');
+    list_exactly_contains($r, destination => 'z', 'c', 'x', 'y');
 }
 
 sub list_exactly_contains {
-    my ( $list, @elements ) = @_;
+    my ( $redis, $list, @elements ) = @_;
 
     for my $i (0 .. $#elements) {
-        is $r->lindex($list, $i), $elements[$i];
+        is $redis->lindex($list, $i), $elements[$i];
     }
 
-    is $r->lindex($list, $#elements + 1), undef;
+    is $redis->lindex($list, $#elements + 1), undef;
 }
 
 done_testing();
