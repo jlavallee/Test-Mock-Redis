@@ -81,6 +81,31 @@ foreach my $r (@redi){
 
     $r->lpush('list', $_) for 0..9; # just for rpop
     is $r->rpop('list'), $_ for 0..9;
+
+    # TODO rpush( 'list', 0..9 ) should also work
+
+    # rpushlpop
+    # Setup...
+    $r->rpush(source => $_) for 'a', 'b', 'c';
+    $r->rpush(destination => $_) for 'x', 'y', 'z';
+
+    is $r->rpoplpush('list-that-does-not-exist', 'dummy'), undef;
+    is $r->rpoplpush('source', 'destination'), 'c';
+    list_exactly_contains($r, source => 'a', 'b');
+    list_exactly_contains($r, destination => 'c', 'x', 'y', 'z');
+
+    is $r->rpoplpush(destination => 'destination'), 'z';
+    list_exactly_contains($r, destination => 'z', 'c', 'x', 'y');
+}
+
+sub list_exactly_contains {
+    my ( $redis, $list, @elements ) = @_;
+
+    for my $i (0 .. $#elements) {
+        is $redis->lindex($list, $i), $elements[$i];
+    }
+
+    is $redis->lindex($list, $#elements + 1), undef;
 }
 
 done_testing();
