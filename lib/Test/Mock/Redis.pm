@@ -1159,6 +1159,8 @@ The following people have contributed to I<Test::Mock::Redis>:
 
 =item * Karen Etheridge
 
+=item * Keith Broughton
+
 =item * Kevin Goess
 
 =item * Neil Bowers
