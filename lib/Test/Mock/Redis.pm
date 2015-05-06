@@ -1045,7 +1045,10 @@ sub zrangebyscore {
 sub zrevrangebyscore {
     my ( $self, $key, $max, $min, $withscores ) = @_;
 
-    return reverse $self->zrangebyscore($key, $min, $max, $withscores);
+    my $not_with_scores = 0;
+
+    return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ } 
+               reverse $self->zrangebyscore($key, $min, $max, $not_with_scores);
 }
 
 sub zcount {
