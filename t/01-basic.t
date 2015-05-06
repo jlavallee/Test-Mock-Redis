@@ -242,6 +242,31 @@ foreach my $o (@redi){
     ok($o->del($zset));                          # cleanup
 
 
+    my @sorting_zkeys = (qw/foog foof fooe fooa foob food fooc/);
+
+    # foo* all have the same score so they should sort lexically
+    $o->zadd($zset, 1, 'bar');
+    ok($o->zadd($zset, 5, $_)) for @sorting_zkeys;
+    $o->zadd($zset, 9, 'baz');
+    
+    my @sorted_zkeys = sort @sorting_zkeys;
+    @sorting_zkeys = ('bar', @sorting_zkeys, 'baz');
+    @sorted_zkeys = ('bar', @sorted_zkeys, 'baz');
+
+    is_deeply([$o->zrangebyscore($zset, 0, 10)], \@sorted_zkeys);
+    is_deeply([$o->zrangebyscore($zset, 0, 4)], [ 'bar' ]);
+    is_deeply([$o->zrangebyscore($zset, 2, 6)], [@sorted_zkeys[1..7]]);
+
+    my @revsorted_zkeys = reverse @sorted_zkeys;
+
+    # max and min are reversed
+    is_deeply([$o->zrevrangebyscore($zset, 10, 0)], \@revsorted_zkeys);
+    is_deeply([$o->zrevrangebyscore($zset, 4, 0)], [ 'bar' ]);
+    is_deeply([$o->zrevrangebyscore($zset, 6, 2)], [@revsorted_zkeys[1..7]]);
+
+
+    ok($o->del($zset));                          # cleanup
+
     ## Commands operating on hashes
 
     my $hash = 'test-hash';
