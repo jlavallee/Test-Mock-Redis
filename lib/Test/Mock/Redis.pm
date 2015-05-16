@@ -999,7 +999,9 @@ sub zrange {
     
     return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ } 
                ( map { $_->[0] }
-                     sort { $a->[1] <=> $b->[1] }
+                     sort { $a->[1] <=> $b->[1]
+                                     ||
+                            $a->[0] cmp $b->[0] }
                          map { [ $_, $self->_stash->{$key}->{$_} ] }
                              keys %{ $self->_stash->{$key} } 
                )[$start..$stop]
@@ -1037,7 +1039,16 @@ sub zrangebyscore {
             
     return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ } 
                grep { $cmp->($_) } $self->zrange($key, 0, $self->zcard($key)-1);
-                   $self->zrange($key, 0, $self->zcard($key)-1);
+}
+
+# note max and min are reversed from zrangebyscore
+sub zrevrangebyscore {
+    my ( $self, $key, $max, $min, $withscores ) = @_;
+
+    my $not_with_scores = 0;
+
+    return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ } 
+               reverse $self->zrangebyscore($key, $min, $max, $not_with_scores);
 }
 
 sub zcount {
