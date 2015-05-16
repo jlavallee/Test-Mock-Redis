@@ -269,7 +269,7 @@ foreach my $o (@redi){
     # (fix up bar =>1 and baz => 9 by hand)
     $expected_withscores->[-1] = 1;
     $expected_withscores->[1] = 9;
-    is_deeply([$o->zrevrangebyscore($zset, 10, 0, 1)], $expected_withscores);
+    is_deeply([$o->zrevrangebyscore($zset, 10, 0, 'WITHSCORES')], $expected_withscores);
 
     ok($o->del($zset));                          # cleanup
 
