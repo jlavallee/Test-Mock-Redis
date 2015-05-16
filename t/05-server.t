@@ -8,7 +8,7 @@ use Test::Mock::Redis;
 
 
 =pod
-x   AUTH  
+x   AUTH
 x   ECHO
 x   PING
 x   QUIT

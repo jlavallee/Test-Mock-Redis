@@ -66,7 +66,7 @@ foreach my $r (@redi){
 
     is $r->srem('set', 'bar'), 1, "srem returns 1 when it removes an element";
 
-    is $r->sadd('set', $_), 1, "srem returns 1 when it adds a new element to the set" 
+    is $r->sadd('set', $_), 1, "srem returns 1 when it adds a new element to the set"
         for (grep { $_ ne 'foo'} @members);
 
     is $r->type('set'), 'set', "our set has type set";
@@ -83,18 +83,18 @@ foreach my $r (@redi){
     }
 
     # set has been emptied.  Put some stuff in it again
-    is $r->sadd('set', $_), 1, "srem returns 1 when it adds a new element to the set" 
+    is $r->sadd('set', $_), 1, "srem returns 1 when it adds a new element to the set"
         for (@members);
 
-    is $r->sadd('otherset', $_), 1, "srem returns 1 when it adds a new element to the set" 
+    is $r->sadd('otherset', $_), 1, "srem returns 1 when it adds a new element to the set"
         for (qw/foo bar baz/);
 
-    is $r->sadd('anotherset', $_), 1, "srem returns 1 when it adds a new element to the set" 
+    is $r->sadd('anotherset', $_), 1, "srem returns 1 when it adds a new element to the set"
         for (qw/bar baz qux/);
 
     is_deeply [sort $r->sinter('set', 'otherset')], [qw/bar baz foo/], "sinter returns all members in common";
 
-    is_deeply [sort $r->sinter('set', 'otherset', 'anotherset')], [qw/bar baz/], 
+    is_deeply [sort $r->sinter('set', 'otherset', 'anotherset')], [qw/bar baz/],
         "sinter returns all members in common for multiple sets";
 
     is_deeply [$r->sinter('set', 'emptyset')], [], "sinter returns empty list";
@@ -109,7 +109,7 @@ foreach my $r (@redi){
     is $r->sinterstore('destset', 'set', 'otherset', 'anotherset'), 2, "sinterstore returns cardinality of intersection";
     is_deeply [sort $r->smembers('destset')], [sort $r->sinter('set', 'otherset', 'anotherset')], "sinterstore stored the correct result";
 
-    is $r->sadd('otherset', $_), 1, "srem returns 1 when it adds a new element to the set" 
+    is $r->sadd('otherset', $_), 1, "srem returns 1 when it adds a new element to the set"
         for (qw/oink bah neigh/);
 
     is_deeply [sort $r->sunion('set', 'otherset')],   [sort @members, qw/oink bah neigh/], "sunion returns all members of two sets";
@@ -145,7 +145,7 @@ foreach my $r (@redi){
 
     is $r->smove('notaset', 'otherset', 'foo'), 0, "smove returns false when source doesn't exist";
 
-    $r->set('justakey', 'foobar');    
+    $r->set('justakey', 'foobar');
 
     like exception { $r->smove('justakey', 'set', 'foo') },
         qr/^\Q[smove] ERR Operation against a key holding the wrong kind of value\E/,

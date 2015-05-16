@@ -77,7 +77,7 @@ foreach my $r (@redi){
     $r->del('hash');
 
     ok $r->hset('hash', 'foo', 'foobar'), "hset returns true when it's happy";
-    
+
     ok $r->hexists('hash', 'foo'), "hexists returns true when it's true";
 
     ok ! $r->hdel('blarg', 'blorf'), "hdel on a hash that doesn't exist returns false";
@@ -120,7 +120,7 @@ foreach my $r (@redi){
     like exception { $r->hvals('not a hash') },
          qr/^\Q[hvals] ERR Operation against a key holding the wrong kind of value\E/,
          "hvals on key that isn't a hash throws error";
-    
+
 
     is_deeply [ $r->hmget('hash', qw/foo bar baz/) ], [ qw/bar baz qux/ ],
         "hmget returns requested values";
@@ -136,7 +136,7 @@ foreach my $r (@redi){
         "hincerby dies when called with the wrong number of arguments";
 
     like exception { $r->hincrby('hash', 'foo', 1) },
-        qr/^\Q[hincrby] ERR hash value is not an integer\E/, 
+        qr/^\Q[hincrby] ERR hash value is not an integer\E/,
          "hincrby dies when a non-integer is incremented";
 
     is $r->hincrby('hash', 'incrme', 1), 1, "incrby 1 on a value that doesn't exist returns 1";

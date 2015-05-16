@@ -55,7 +55,7 @@ returned, with all data preserved.
 
 =head2 new
 
-    Create a new Test::Mock::Redis object. 
+    Create a new Test::Mock::Redis object.
 
     It can be used in place of a Redis object for unit testing.
 
@@ -63,7 +63,7 @@ returned, with all data preserved.
 
 =head2 num_databases
 
-Redis ships with a default of 16 databases, and that's what this module 
+Redis ships with a default of 16 databases, and that's what this module
 handles by default. If you need to change that, do
 
     use Test::Mock::Redis num_databases => 21;
@@ -340,15 +340,15 @@ sub type {
 
     my $type = ref $self->_stash->{$key};
 
-    return !$type 
+    return !$type
          ? 'string'
-         : $type eq 'Test::Mock::Redis::Hash' 
+         : $type eq 'Test::Mock::Redis::Hash'
            ? 'hash'
            : $type eq 'Test::Mock::Redis::Set'
              ? 'set'
              : $type eq 'Test::Mock::Redis::ZSet'
                ? 'zset'
-                 : $type eq 'Test::Mock::Redis::List' 
+                 : $type eq 'Test::Mock::Redis::List'
                    ? 'list'
                    : 'unknown'
     ;
@@ -469,7 +469,7 @@ sub lrange {
 sub ltrim {
     my ( $self, $key, $start, $end ) = @_;
 
-    $self->_stash->{$key} = [ @{ $self->_stash->{$key} }[$start..$end] ]; 
+    $self->_stash->{$key} = [ @{ $self->_stash->{$key} }[$start..$end] ];
     return 'OK';
 }
 
@@ -501,7 +501,7 @@ sub lrem {
             last if $count && ++$removed >= $count;
         }
     }
-    
+
     return $removed;
 }
 
@@ -526,7 +526,7 @@ sub select {
 
     my $max_index = $#{ $self->{_stash} };
     if ($index > $max_index ){
-        die "You called select($index), but max allowed is $max_index unless you configure more databases"; 
+        die "You called select($index), but max allowed is $max_index unless you configure more databases";
     }
 
     $self->{_db_index} = $index;
@@ -563,7 +563,7 @@ sub sismember {
     my ( $self, $key, $value ) = @_;
 
     return exists $self->_stash->{$key}->{$value}
-            ? 1 
+            ? 1
             : 0;
 }
 
@@ -839,7 +839,7 @@ sub sort {
 
     my $cmp = do
     { no warnings 'uninitialized';
-      $how =~ /\bALPHA\b/ 
+      $how =~ /\bALPHA\b/
       ? $how =~ /\bDESC\b/
         ? sub { $b cmp $a }
         : sub { $a cmp $b }
@@ -852,18 +852,18 @@ sub sort {
     return sort $cmp @{ $self->_stash->{$key} };
 }
 
-sub save { 
+sub save {
     my $self = shift;
     $self->{_last_save} = time;
     return 'OK';
 }
 
-sub bgsave { 
+sub bgsave {
     my $self = shift;
     return $self->save;
 }
 
-sub lastsave { 
+sub lastsave {
     my $self = shift;
     return $self->{_last_save};
 }
@@ -996,14 +996,12 @@ sub zrange {
     my ( $self, $key, $start, $stop, $withscores ) = @_;
 
     $stop = $self->zcard($key)-1 if $stop >= $self->zcard($key);
-    
-    return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ } 
+
+    return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ }
                ( map { $_->[0] }
-                     sort { $a->[1] <=> $b->[1]
-                                     ||
-                            $a->[0] cmp $b->[0] }
+                     sort { $a->[1] <=> $b->[1] || $a->[0] cmp $b->[0] }
                          map { [ $_, $self->_stash->{$key}->{$_} ] }
-                             keys %{ $self->_stash->{$key} } 
+                             keys %{ $self->_stash->{$key} }
                )[$start..$stop]
     ;
 }
@@ -1013,11 +1011,11 @@ sub zrevrange {
 
     $stop = $self->zcard($key)-1 if $stop >= $self->zcard($key);
 
-    return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ } 
+    return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ }
                ( map { $_->[0] }
                      sort { $b->[1] <=> $a->[1] }
                          map { [ $_, $self->_stash->{$key}->{$_} ] }
-                             keys %{ $self->_stash->{$key} } 
+                             keys %{ $self->_stash->{$key} }
                )[$start..$stop]
     ;
 }
@@ -1030,14 +1028,14 @@ sub zrangebyscore {
 
     my $cmp = !$min_inc && !$max_inc
             ? sub { $self->zscore($key, $_[0]) > $min && $self->zscore($key, $_[0]) < $max }
-            : !$min_inc 
+            : !$min_inc
               ? sub { $self->zscore($key, $_[0]) > $min && $self->zscore($key, $_[0]) <= $max }
-              : !$max_inc 
+              : !$max_inc
                 ? sub { $self->zscore($key, $_[0]) >= $min && $self->zscore($key, $_[0]) <  $max }
                 : sub { $self->zscore($key, $_[0]) >= $min && $self->zscore($key, $_[0]) <= $max }
     ;
-            
-    return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ } 
+
+    return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ }
                grep { $cmp->($_) } $self->zrange($key, 0, $self->zcard($key)-1);
 }
 
@@ -1047,7 +1045,7 @@ sub zrevrangebyscore {
 
     my $not_with_scores = 0;
 
-    return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ } 
+    return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ }
                reverse $self->zrangebyscore($key, $min, $max, $not_with_scores);
 }
 
@@ -1460,7 +1458,7 @@ use strict; use warnings;
 use Tie::Hash;
 use base qw/Tie::StdHash/;
 
-sub DELETE { 
+sub DELETE {
     my ( $self, $key ) = @_;
 
     delete $self->{$key};

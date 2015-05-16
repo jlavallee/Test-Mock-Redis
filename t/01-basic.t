@@ -248,7 +248,7 @@ foreach my $o (@redi){
     $o->zadd($zset, 1, 'bar');
     ok($o->zadd($zset, 5, $_)) for @sorting_zkeys;
     $o->zadd($zset, 9, 'baz');
-    
+
     my @sorted_zkeys = sort @sorting_zkeys;
     @sorting_zkeys = ('bar', @sorting_zkeys, 'baz');
     @sorted_zkeys = ('bar', @sorted_zkeys, 'baz');
