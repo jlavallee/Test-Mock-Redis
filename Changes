@@ -1,7 +1,11 @@
 Revision history for Perl module Test::Mock::Redis
 
+0.17 2015-05-15
+    - zrevrangebyscore command added (Kevin Goess)
+    - zrangebyscore sort fixes (Kevin Goess)
+
 0.16 2015-04-14
-    - rpoplpush comands added (Keith Broughton)
+    - rpoplpush command added (Keith Broughton)
 
 0.15 2014-08-29
     - watch/unwatch commands added (Ian Burrell)
