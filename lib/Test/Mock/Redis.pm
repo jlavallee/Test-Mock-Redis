@@ -1174,6 +1174,8 @@ The following people have contributed to I<Test::Mock::Redis>:
 
 =item * Neil Bowers
 
+=item * Yaakov Shaul
+
 =back
 
 =head1 LICENSE AND COPYRIGHT
