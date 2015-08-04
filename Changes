@@ -1,5 +1,8 @@
 Revision history for Perl module Test::Mock::Redis
 
+0.18 2015-08-03
+    - fix for keys match (Yaakov Shaul)
+
 0.17 2015-05-15
     - zrevrangebyscore command added (Kevin Goess)
     - zrangebyscore sort fixes (Kevin Goess)
