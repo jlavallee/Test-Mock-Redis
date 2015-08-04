@@ -365,7 +365,7 @@ sub keys :method {
 
     return @{[ sort { $a cmp $b }
         grep { exists $self->_stash->{$_} }
-        grep { /$match/ }
+        grep { /^$match/ }
         keys %{ $self->_stash }]};
 }
 
@@ -1519,4 +1519,3 @@ sub ttl {
 
 
 1;
-

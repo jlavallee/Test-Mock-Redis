@@ -52,6 +52,8 @@ foreach my $r (@redi){
     is_deeply([ sort $r->keys('ba?') ], [qw/bar baz/], 'keys ba? matches bar and baz');
     is_deeply([ sort $r->keys('?a?') ], [qw/bar baz/], 'keys ?a? matches bar and baz');
     is_deeply([ sort $r->keys('ba[rz]') ], [qw/bar baz/], 'keys ba[rz] matches bar and baz');
+    is_deeply([ sort $r->keys('a*') ], [], 'keys search should start at beginning of word');
+
     # TODO: more keys() tests
 
     ok(! $r->del('quizlebub'), "del on a key that doesn't exist returns false");
