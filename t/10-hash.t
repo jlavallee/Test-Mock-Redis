@@ -78,7 +78,7 @@ foreach my $r (@redi){
 
     ok $r->hset('hash', 'foo', 'foobar'), "hset returns true when it's happy";
 
-    ok $r->hexists('hash', 'foo'), "hexists returns true when it's true";
+    is $r->hexists('hash', 'foo'), 1, "hexists returns 1 when it's true";
 
     ok ! $r->hdel('blarg', 'blorf'), "hdel on a hash that doesn't exist returns false";
     ok ! $r->hdel('hash', 'blarg'),  "hdel on a hash field that doesn't exist returns false";
@@ -86,6 +86,7 @@ foreach my $r (@redi){
     ok $r->hdel('hash', 'foo'), "hdel returns true when it's happy";
 
     ok ! $r->hexists('hash', 'foo'), "hdel really deleted the field";
+    is $r->hexists('hash', 'foo'), 0, "hexists returns 0 when field is not in the hash";
 
     is $r->hlen('hash'), 0, "hlen counted zarro keys";
 
@@ -151,4 +152,3 @@ foreach my $r (@redi){
 
 
 done_testing();
-
