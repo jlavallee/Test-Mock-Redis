@@ -1182,7 +1182,7 @@ The following people have contributed to I<Test::Mock::Redis>:
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2011, 2012, 2013 Jeff Lavallee.
+Copyright 2015 Jeff Lavallee.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
