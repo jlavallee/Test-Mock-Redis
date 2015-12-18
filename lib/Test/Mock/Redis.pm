@@ -1164,6 +1164,8 @@ The following people have contributed to I<Test::Mock::Redis>:
 
 =over
 
+=item * Chris Reinhardt
+
 =item * Ian Burrell
 
 =item * Karen Etheridge
