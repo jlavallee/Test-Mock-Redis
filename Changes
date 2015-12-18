@@ -1,5 +1,8 @@
 Revision history for Perl module Test::Mock::Redis
 
+0.19 2015-12-18
+    - fix for hexists return value (Chris Reinhardt)
+
 0.18 2015-08-03
     - fix for keys match (Yaakov Shaul)
 
