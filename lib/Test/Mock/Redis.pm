@@ -463,7 +463,14 @@ sub llen {
 sub lrange {
     my ( $self, $key, $start, $end ) = @_;
 
-    return @{ $self->_stash->{$key} }[$start..$end];
+    my $list = $self->_stash->{$key};
+
+    $start < 0 and $start = @$list + $start;
+    $end < 0   and $end   = @$list + $end;
+    $end > $#$list and $end = $#$list;
+    $start > $end and return;
+
+    return @{$list}[$start..$end];
 }
 
 sub ltrim {

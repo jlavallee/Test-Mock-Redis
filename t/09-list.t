@@ -96,6 +96,13 @@ foreach my $r (@redi){
 
     is $r->rpoplpush(destination => 'destination'), 'z';
     list_exactly_contains($r, destination => 'z', 'c', 'x', 'y');
+
+    is_deeply([$r->lrange(destination => 0, 2)], [qw/z c x/]);
+    is_deeply([$r->lrange(destination => 1, 2)], [qw/c x/]);
+    is_deeply([$r->lrange(destination => 1, -1)], [qw/c x y/]);
+    is_deeply([$r->lrange(destination => 2, -2)], [qw/x/]);
+    is_deeply([$r->lrange(destination => -3, 5)], [qw/c x y/]);
+    is_deeply([$r->lrange(destination => 3, 1)], []);
 }
 
 sub list_exactly_contains {
