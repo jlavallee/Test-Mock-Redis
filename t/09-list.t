@@ -16,7 +16,7 @@ x   LLEN
 x   LPOP
 x   LPUSH
 x   LPUSHX
-    LRANGE
+o   LRANGE
     LREM
     LSET
     LTRIM
@@ -101,8 +101,10 @@ foreach my $r (@redi){
 sub list_exactly_contains {
     my ( $redis, $list, @elements ) = @_;
 
+    my @from_redis = $redis->lrange($list, 0, scalar @elements);
+
     for my $i (0 .. $#elements) {
-        is $redis->lindex($list, $i), $elements[$i];
+        is $from_redis[$i], $elements[$i];
     }
 
     is $redis->lindex($list, $#elements + 1), undef;
