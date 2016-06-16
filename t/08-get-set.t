@@ -56,6 +56,36 @@ foreach my $r (@redi){
 
     is($r->type('foo'), 'string', 'type of foo is string');
 
+    subtest 'set options' => sub {
+        ok(! $r->set('foo', 'new_val', 'NX'), 'set takes NX option');
+        is($r->get('foo'), 'foobar', 'value did not change because of NX');
+
+        note 'Try again on new key';
+        ok($r->set('oof', 'new_val', 'NX'), 'Testing NX on non-existent key');
+        is($r->get('oof'), 'new_val', 'Successfully set key with NX');
+
+        note 'Back to foo';
+        ok($r->set('foo', 'new_val', 'XX'), 'set takes XX option');
+        is($r->get('foo'), 'new_val', 'XX updates the value');
+
+        ok($r->set('foo', 'foobar', 'EX' => 1000), 'set takes EX option');
+        ok($r->ttl('foo') > 999 && $r->ttl('foo') <= 1000, 'EX sets TTL');
+
+        note 'Now trying some combinations';
+        ok($r->set('raboof', 'val', 'NX', EX => 10), 'Called set with NX and EX');
+        is($r->get('raboof'), 'val', ' - created key');
+        ok($r->ttl('raboof') > 9 && $r->ttl('raboof') <= 10, ' - set TTL');
+        ok($r->set('raboof', 'bar', 'XX', EX => 20), 'Called set with XX and EX');
+        is($r->get('raboof'), 'bar', ' - updated key');
+        ok($r->ttl('raboof') > 19 && $r->ttl('raboof') <= 20, ' - reset TTL');
+        ok(! defined $r->set('finaltest', 'baz', 'NX', 'XX'), 'Returns nil with NX and XX');
+
+        ok($r->set('raboof', 'val', 'EX', 100, 'PX', 10), 'Called set with EX and PX, EX greater');
+        ok($r->ttl('raboof') > 99 && $r->ttl('raboof') <= 100, 'Used EX value');
+        ok($r->set('raboof', 'val', 'PX', 5000, 'EX', 2), 'Called set with EX and PX, PX greater');
+        ok($r->ttl('raboof') > 4 && $r->ttl('raboof') <= 5, 'Used PX value');
+    };
+
     ok(! $r->setnx('foo', 'foobar'), 'setnx returns false for existing key');
     ok($r->setnx('qux', 'quxqux'),   'setnx returns true for new key');
 

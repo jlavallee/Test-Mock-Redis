@@ -164,9 +164,41 @@ sub shutdown {
 }
 
 sub set {
-    my ( $self, $key, $value ) = @_;
+    my ( $self, $key, $value, @args ) = @_;
+    my $expires = 0;
+    while (my $option = shift @args) {
+        $option = lc $option;
+        # Only set if key exists
+        if ($option eq 'xx') {
+            return unless $self->exists($key);
 
+        # Only set if key doesn't exist
+        } elsif ($option eq 'nx') {
+            return if $self->exists($key);
+
+        # Set expire time (in seconds)
+        } elsif ($option eq 'ex') {
+            my $new_expires = shift @args;
+            if ($new_expires > $expires) {
+                $expires = $new_expires;
+            }
+
+        # Set expire time (in milliseconds)
+        } elsif ($option eq 'px') {
+            my $new_expires = shift @args;
+            $new_expires /= 1000; # To seconds
+            if ($new_expires > $expires) {
+                $expires = $new_expires;
+            }
+        } else {
+            confess '[error] ERR syntax error';
+        }
+    }
     $self->_stash->{$key} = "$value";
+    if ($expires) {
+        $self->expire($key, $expires);
+    }
+
     return 'OK';
 }
 
