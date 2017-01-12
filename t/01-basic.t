@@ -205,6 +205,8 @@ foreach my $o (@redi){
     is_deeply([$o->zrange($zset, 0, 1)], [qw/bar foo/]);
     is_deeply([$o->zrevrange($zset, 0, 1)], [qw/baz foo/]);
 
+    is_deeply([$o->zrange($zset, 0, -2)], [qw/bar foo/]);
+    is_deeply([$o->zrevrange($zset, -3, 1)], [qw/baz foo/]);
 
     my $withscores = {$o->zrevrange($zset, 0, 1, 'WITHSCORES')};
 
