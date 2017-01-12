@@ -16,10 +16,10 @@ x   LLEN
 x   LPOP
 x   LPUSH
 x   LPUSHX
-    LRANGE
+x   LRANGE
     LREM
-    LSET
-    LTRIM
+x   LSET
+x   LTRIM
 x   RPOP
     RPOPLPUSH
 x   RPUSH
@@ -72,6 +72,9 @@ foreach my $r (@redi){
 
     is $r->lindex('list', $_), $_ for 0..9;
 
+    # e.g. lindex('list',-1) returns the last element
+    is $r->lindex('list', -1-$_), 9-$_ for 0..9;
+
     is $r->llen('list'), 10, 'llen returns length of list';
 
     is $r->lpop('list'), $_ for 0..9;
@@ -96,6 +99,23 @@ foreach my $r (@redi){
 
     is $r->rpoplpush(destination => 'destination'), 'z';
     list_exactly_contains($r, destination => 'z', 'c', 'x', 'y');
+
+    is_deeply([$r->lrange(destination => 0, 2)], [qw/z c x/]);
+    is_deeply([$r->lrange(destination => 1, 2)], [qw/c x/]);
+    is_deeply([$r->lrange(destination => 1, -1)], [qw/c x y/]);
+    is_deeply([$r->lrange(destination => 2, -2)], [qw/x/]);
+    is_deeply([$r->lrange(destination => -3, 5)], [qw/c x y/]);
+    is_deeply([$r->lrange(destination => 3, 1)], []);
+
+    $r->lset(destination => 0, 'a');
+    $r->lset(destination => -1, 'f');
+    list_exactly_contains($r, destination => 'a', 'c', 'x', 'f');
+
+    $r->rpush(long => $_) for 1..10;
+    $r->ltrim(long => 1,8);
+    list_exactly_contains($r,long => 2..9);
+    $r->ltrim(long => -5,-3);
+    list_exactly_contains($r,long => 5..7);
 }
 
 sub list_exactly_contains {

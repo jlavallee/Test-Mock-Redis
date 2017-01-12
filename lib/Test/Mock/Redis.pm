@@ -495,26 +495,34 @@ sub llen {
 sub lrange {
     my ( $self, $key, $start, $end ) = @_;
 
-    return @{ $self->_stash->{$key} }[$start..$end];
+    my $array = $self->_stash->{$key};
+    ($start,$end) = _normalize_range(scalar(@$array),$start,$end);
+    return @{ $array }[$start..$end];
 }
 
 sub ltrim {
     my ( $self, $key, $start, $end ) = @_;
 
-    $self->_stash->{$key} = [ @{ $self->_stash->{$key} }[$start..$end] ];
+    my $array = $self->_stash->{$key};
+    ($start,$end) = _normalize_range(scalar(@$array),$start,$end);
+    $self->_stash->{$key} = [ @{ $array }[$start..$end] ];
     return 'OK';
 }
 
 sub lindex {
     my ( $self, $key, $index ) = @_;
 
-    return $self->_stash->{$key}->[$index];
+    my $array = $self->_stash->{$key};
+    $index = _normalize_index(scalar(@$array),$index);
+    return $array->[$index];
 }
 
 sub lset {
     my ( $self, $key, $index, $value ) = @_;
 
-    $self->_stash->{$key}->[$index] = "$value";
+    my $array = $self->_stash->{$key};
+    $index = _normalize_index(scalar(@$array),$index);
+    $array->[$index] = "$value";
     return 'OK';
 }
 
@@ -1027,7 +1035,8 @@ sub zrevrank {
 sub zrange {
     my ( $self, $key, $start, $stop, $withscores ) = @_;
 
-    $stop = $self->zcard($key)-1 if $stop >= $self->zcard($key);
+    my $length = $self->zcard($key);
+    ($start,$stop) = _normalize_range($length,$start,$stop);
 
     return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ }
                ( map { $_->[0] }
@@ -1041,7 +1050,8 @@ sub zrange {
 sub zrevrange {
     my ( $self, $key, $start, $stop, $withscores ) = @_;
 
-    $stop = $self->zcard($key)-1 if $stop >= $self->zcard($key);
+    my $length = $self->zcard($key);
+    ($start,$stop) = _normalize_range($length,$start,$stop);
 
     return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ }
                ( map { $_->[0] }
@@ -1225,6 +1235,22 @@ See L<http://dev.perl.org/licenses/> for more information.
 
 =cut
 
+sub _normalize_index {
+    my ( $length, $index ) = @_;
+
+    $index += $length if $index < 0;
+    return $index;
+}
+
+sub _normalize_range {
+    my ( $length, $start, $end ) = @_;
+
+    $start = _normalize_index($length,$start);
+    $end = _normalize_index($length,$end);
+    $end = $length-1 if $end >= $length;
+
+    return ($start,$end);
+}
 
 sub _is_list {
     my ( $self, $key ) = @_;
