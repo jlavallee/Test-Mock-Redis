@@ -1013,7 +1013,7 @@ sub zrevrange {
 
     return map { $withscores ? ( $_, $self->zscore($key, $_) ) : $_ }
                ( map { $_->[0] }
-                     sort { $b->[1] <=> $a->[1] }
+                     sort { $b->[1] <=> $a->[1] || $b->[0] cmp $a->[0] }
                          map { [ $_, $self->_stash->{$key}->{$_} ] }
                              keys %{ $self->_stash->{$key} }
                )[$start..$stop]
