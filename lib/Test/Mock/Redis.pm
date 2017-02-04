@@ -1210,6 +1210,8 @@ The following people have contributed to I<Test::Mock::Redis>:
 
 =item * Ian Burrell
 
+=item * Gianni Ceccarelli
+
 =item * Karen Etheridge
 
 =item * Keith Broughton
@@ -1217,6 +1219,8 @@ The following people have contributed to I<Test::Mock::Redis>:
 =item * Kevin Goess
 
 =item * Neil Bowers
+
+=item * Nigel Gregoire
 
 =item * Yaakov Shaul
 
