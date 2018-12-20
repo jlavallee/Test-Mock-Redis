@@ -17,11 +17,11 @@ Test::Mock::Redis - use in place of Redis for unit testing
 
 =head1 VERSION
 
-Version 0.20
+Version 0.21
 
 =cut
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 =head1 SYNOPSIS
 
@@ -1227,13 +1227,15 @@ The following people have contributed to I<Test::Mock::Redis>:
 
 =item * Nigel Gregoire
 
+=item * Thomas Bloor
+
 =item * Yaakov Shaul
 
 =back
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2015 Jeff Lavallee.
+Copyright 2018 Jeff Lavallee.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
