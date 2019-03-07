@@ -54,8 +54,11 @@ foreach my $r (@redi){
     is $r->llen('list'), 0, "llen returns 0 for a list that doesn't exist";
 
     for my $op (qw/lpush rpush/){
-        eval { $r->lpush('foo', 'barfoo') };
-        like $@, qr/^\Q[lpush] ERR Operation against a key holding the wrong kind of value\E/, "lpush against a key that doesn't hold a list died";
+        eval { $r->$op('foo', 'barfoo') };
+        like $@, qr/^\[$op\] ERR Operation against a key holding the wrong kind of value/, "$op against a key that doesn't hold a list died";
+
+        eval { $r->$op('foo') };
+        like $@, qr/^\[$op\] ERR wrong number of arguments for '$op' command/, "$op without any values died";
 
         ok ! $r->exists("list-$op"), "key 'list-$op' does not exist yet";
         is $r->$op("list-$op", 'foobar'), 1, "$op returns length of list";
@@ -66,6 +69,8 @@ foreach my $r (@redi){
         is $r->llen("list-$op"),          3, "llen agrees";
         is $r->$op("list-$op", 'quxqux'), 4, "$op returns length of list";
         is $r->llen("list-$op"),          4, "llen agrees";
+        is $r->$op("list-$op", 1,2,3,4),  8, "$op can add multiple values at once";
+        is $r->llen("list-$op"),          8, "llen agrees";
     }
 
     $r->rpush('list', $_) for 0..9;
