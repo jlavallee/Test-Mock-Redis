@@ -38,6 +38,10 @@ if( $ENV{RELEASE_TESTING} ){
 foreach my $r (@redi){
     diag("testing $r") if $ENV{RELEASE_TESTING};
 
+    ok ! $r->hexists('hash', 'foo'), "hexists on an empty hash returns false";
+
+    ok ! $r->hexists('hash', 'foo'), "hexists on the same empty hash returns false proving there was no autovivification";
+
     is $r->hget('hash', 'foo'), undef, "hget for a hash that doesn't exist is undef";
 
     is_deeply([sort $r->hkeys('hash')], [], "hkeys returned no keys for a hash that doesn't exist");

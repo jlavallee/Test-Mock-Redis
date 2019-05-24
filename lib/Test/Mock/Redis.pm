@@ -782,7 +782,7 @@ sub hexists {
     confess '[hexists] ERR Operation against a key holding the wrong kind of value'
          if $self->exists($key) and !$self->_is_hash($key);
 
-    return exists $self->_stash->{$key}->{$hkey} ? 1 : 0;
+    return $self->exists($key) && exists $self->_stash->{$key}->{$hkey} ? 1 : 0;
 }
 
 sub hdel {
