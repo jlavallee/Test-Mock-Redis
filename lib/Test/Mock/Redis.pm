@@ -165,39 +165,46 @@ sub shutdown {
 
 sub set {
     my ( $self, $key, $value, @args ) = @_;
-    my $expires = 0;
+
+    my ( $expires, $expire_cmd, $cond_cmd );
     while (my $option = shift @args) {
-        $option = lc $option;
-        # Only set if key exists
-        if ($option eq 'xx') {
-            return unless $self->exists($key);
+      $option = lc $option;
 
-        # Only set if key doesn't exist
-        } elsif ($option eq 'nx') {
-            return if $self->exists($key);
+      if ($option eq 'nx' || $option eq 'xx') { # the same condition can be repeated but mix isn't allowed
+        confess '[set] ERR syntax error'
+          if defined $cond_cmd && $cond_cmd ne $option;
 
-        # Set expire time (in seconds)
-        } elsif ($option eq 'ex') {
-            my $new_expires = shift @args;
-            if ($new_expires > $expires) {
-                $expires = $new_expires;
-            }
+        $cond_cmd = $option;
+      } elsif ($option eq 'ex' || $option eq 'px') { # same units can be repeated but mix isn't allowed
+        confess '[set] ERR syntax error'
+          if defined $expire_cmd && $expire_cmd ne $option;
 
-        # Set expire time (in milliseconds)
-        } elsif ($option eq 'px') {
-            my $new_expires = shift @args;
-            $new_expires /= 1000; # To seconds
-            if ($new_expires > $expires) {
-                $expires = $new_expires;
-            }
-        } else {
-            confess '[error] ERR syntax error';
-        }
+        $expire_cmd = $option;
+
+        $expires = shift @args; # do we need a validation here?
+
+        $expires /= 1000        # milliseconds to seconds
+          if $expire_cmd eq 'px';
+      } else {
+        confess '[set] ERR syntax error';
+      }
     }
+
+    if ( defined $cond_cmd ) {
+      # Only set if key exists
+      return
+        if $cond_cmd eq 'xx'
+        && ! $self->exists($key);
+
+      # Only set if key doesn't exist
+      return
+        if $cond_cmd eq 'nx'
+        && $self->exists($key);
+    }
+
     $self->_stash->{$key} = "$value";
-    if ($expires) {
-        $self->expire($key, $expires);
-    }
+    $self->expire($key, $expires)
+      if defined $expires;
 
     return 'OK';
 }
