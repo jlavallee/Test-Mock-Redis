@@ -57,6 +57,10 @@ foreach my $r (@redi){
         eval { $r->$op('foo', 'barfoo') };
         like $@, qr/^\Q[$op] WRONGTYPE Operation against a key holding the wrong kind of value\E/, "$op against a key that doesn't hold a list died";
 
+        eval { $r->$op('foo') };
+        like $@, qr/^\[$op\] ERR wrong number of arguments for '$op' command/,
+            "$op without values against a key of wrong kind errors out complaining about values, not wrong kind of the key";
+
         ok ! $r->exists("list-$op"), "key 'list-$op' does not exist yet";
         is $r->$op("list-$op", 'foobar'), 1, "$op returns length of list";
         is $r->llen("list-$op"),          1, "llen agrees";
@@ -66,6 +70,21 @@ foreach my $r (@redi){
         is $r->llen("list-$op"),          3, "llen agrees";
         is $r->$op("list-$op", 'quxqux'), 4, "$op returns length of list";
         is $r->llen("list-$op"),          4, "llen agrees";
+
+        eval { $r->$op("list-$op") };
+        like $@, qr/^\[$op\] ERR wrong number of arguments for '$op' command/,
+            "$op without values errors out";
+
+        is $r->$op( "list-$op", qw/ a b c / ), 7,
+            "$op can push multiple values at once";
+
+        if ( $op eq 'lpush' ) {
+            is_deeply scalar $r->lrange( "list-$op", 0, 2 ), [ reverse qw/ a b c / ],
+                "$op has multiple values stored in correct order";
+        } else {
+            is_deeply scalar $r->lrange( "list-$op", -3, -1 ), [ qw/ a b c / ],
+                "$op has multiple values stored in correct order";
+        }
     }
 
     $r->rpush('list', $_) for 0..9;

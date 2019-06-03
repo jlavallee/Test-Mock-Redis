@@ -443,26 +443,32 @@ sub dbsize {
 }
 
 sub rpush {
-    my ( $self, $key, $value ) = @_;
+    my ( $self, $key, @values ) = @_;
+
+    confess "[rpush] ERR wrong number of arguments for 'rpush' command"
+        unless @values;
 
     confess "[rpush] WRONGTYPE Operation against a key holding the wrong kind of value"
         unless !$self->exists($key) or $self->_is_list($key);
 
     $self->_make_list($key);
 
-    push @{ $self->_stash->{$key} }, "$value";
+    push @{ $self->_stash->{$key} }, map "$_", @values;
     return scalar @{ $self->_stash->{$key} };
 }
 
 sub lpush {
-    my ( $self, $key, $value ) = @_;
+    my ( $self, $key, @values ) = @_;
+
+    confess "[lpush] ERR wrong number of arguments for 'lpush' command"
+        unless @values;
 
     confess "[lpush] WRONGTYPE Operation against a key holding the wrong kind of value"
         unless !$self->exists($key) or $self->_is_list($key);
 
     $self->_make_list($key);
 
-    unshift @{ $self->_stash->{$key} }, "$value";
+    unshift @{ $self->_stash->{$key} }, map "$_", reverse @values;
     return scalar @{ $self->_stash->{$key} };
 }
 
