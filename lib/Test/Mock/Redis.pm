@@ -973,22 +973,22 @@ sub info {
         used_memory_peak => '1055728',
         used_memory_peak_human => '1.01M',
         used_memory_rss => '1699840',
-        map { 'db'.$_ => sprintf('keys=%d,expires=%d',
+        map { 'db'.$_ => sprintf('keys=%d,expires=%d,avg_ttl=%d',
                              scalar keys %{ $self->_stash($_) },
-                             $self->_expires_count_for_db($_),
+                             $self->_expires_count_and_avg_ttl_for_db($_),
                          )
             } grep { scalar keys %{ $self->_stash($_) } > 0 }
                 (0..15)
     };
 }
 
-sub _expires_count_for_db {
+sub _expires_count_and_avg_ttl_for_db {
     my ( $self, $db_index ) = @_;
 
     my $slot = $self->_stash($db_index);
     my $tied = tied(%$slot);
 
-    $tied->expire_count;
+    $tied->expire_count_and_avg_ttl;
 }
 
 sub zadd {
@@ -1570,11 +1570,26 @@ sub expire {
     $expires->{$self}->{$key} = $time;
 }
 
-sub expire_count {
+sub expire_count_and_avg_ttl {
     my ( $self ) = @_;
 
-    # really, we should probably only count keys that haven't expired
-    scalar keys %{ $expires->{$self} };
+    my $now = time();
+    my $count = 0;
+    my $ttl = 0; # looks like actual redis uses more complicated calculations here.  let's do something simple to start with
+    for my $key ( keys %{ $expires->{$self} } ) {
+      if ( $now >= $expires->{$self}->{$key} ) {
+        delete $self->{$key};
+        delete $expires->{$self}->{$key};
+      } else {
+        ++ $count;
+        $ttl += $expires->{$self}->{$key} - $now;
+      }
+    }
+
+    $ttl = int( $ttl / $count * 1_000 )
+      if $count;
+
+    ( $count, $ttl );
 }
 
 sub persist {
