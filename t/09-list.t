@@ -1,4 +1,4 @@
-#!perl -T
+#!/usr/bin/env perl
 
 use strict;
 use warnings;
@@ -54,8 +54,8 @@ foreach my $r (@redi){
     is $r->llen('list'), 0, "llen returns 0 for a list that doesn't exist";
 
     for my $op (qw/lpush rpush/){
-        eval { $r->lpush('foo', 'barfoo') };
-        like $@, qr/^\Q[lpush] ERR Operation against a key holding the wrong kind of value\E/, "lpush against a key that doesn't hold a list died";
+        eval { $r->$op('foo', 'barfoo') };
+        like $@, qr/^\Q[$op] WRONGTYPE Operation against a key holding the wrong kind of value\E/, "$op against a key that doesn't hold a list died";
 
         ok ! $r->exists("list-$op"), "key 'list-$op' does not exist yet";
         is $r->$op("list-$op", 'foobar'), 1, "$op returns length of list";
