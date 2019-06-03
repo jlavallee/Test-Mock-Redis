@@ -507,7 +507,8 @@ sub lrange {
 
     my $array = $self->_stash->{$key};
     ($start,$end) = _normalize_range(scalar(@$array),$start,$end);
-    return @{ $array }[$start..$end];
+
+    return wantarray ? @{ $array }[$start..$end] : [ @{ $array }[$start..$end] ];
 }
 
 sub ltrim {
