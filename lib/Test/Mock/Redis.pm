@@ -254,7 +254,7 @@ sub persist {
 sub ttl {
     my ( $self, $key, $ttl ) = @_;
 
-    return -1 unless exists $self->_stash->{$key};
+    return -2 unless exists $self->_stash->{$key};
 
     my $slot = $self->_stash;
     my $tied = tied(%$slot);
