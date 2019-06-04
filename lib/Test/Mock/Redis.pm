@@ -3,11 +3,11 @@ package Test::Mock::Redis;
 use warnings;
 use strict;
 
-use Carp;
+use Carp 'confess';
 use Config;
 use Scalar::Util qw/blessed/;
 use Class::Method::Modifiers;
-use Package::Stash;
+use Package::Stash ();
 use Try::Tiny;
 use namespace::clean;   # important: clean all subs imported above this line
 
@@ -1359,7 +1359,7 @@ my @want_list = qw(mget keys lrange smembers sinter sunion sdiff hmget hkeys hva
 my %want_list = map { $_ => 1 } @want_list;
 
 sub exec {
-    my ( $self ) = @_;
+    my ( $self, $cb ) = @_;
 
     # we are going to commit all the changes we saved up;
     # replay them now and return all their output
@@ -1370,6 +1370,27 @@ sub exec {
     delete $self->{_multi_commands};
 
     # replay all the queries that were queued up
+    # exec has special behaviour when run in a pipeline:
+    # the $reply argument to the pipeline callback is an array ref whose elements are themselves [$reply, $error] pairs.
+    if ( $cb && 'CODE' eq ref $cb ) {
+      my @reply = map {
+        my ( $method, @args ) = @$_;
+        try {
+          my @result = $self->$method( @args );
+          [ $want_list{ $method } ? \ @result : $result[ 0 ],
+            undef,
+          ];
+        } catch {
+          s/^\[\w+\] //;
+          [ undef, $_ ];
+        };
+      } @commands;
+
+      $cb->( \ @reply, undef );
+
+      return 1;
+    }
+
     # the returned result is a nested array of the results of all the commands
     my @exceptions;
     my @results = map {
@@ -1464,6 +1485,7 @@ my %no_pipeline_wrap_methods = (
     psubscribe => 1,
     punsubscribe => 1,
     wait_all_responses => 1,
+    exec => 1, # doc: 'exec has special behaviour when run in a pipeline'.  covered in the method
 );
 
 my @pipeline_wrapped_methods =
@@ -1493,7 +1515,7 @@ foreach my $method (@pipeline_wrapped_methods)
         # and "Pipeline management" in the Redis docs
         # To make this work, we just need to special-case exec, to collect all the
         # results and errors in tuples and send that to the $cb
-        die 'cannot combine pipelining with MULTI' if $self->{_multi_commands};
+        # die 'cannot combine pipelining with MULTI' if $self->{_multi_commands};
 
         # We could also implement this with a queue, not bothering to process
         # the commands until wait_all_responses is called - but then we need to
