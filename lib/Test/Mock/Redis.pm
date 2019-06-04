@@ -652,7 +652,7 @@ sub spop {
 sub smove {
     my ( $self, $source, $dest, $value ) = @_;
 
-    confess "[smove] ERR Operation against a key holding the wrong kind of value"
+    confess "[smove] WRONGTYPE Operation against a key holding the wrong kind of value"
         if ( $self->exists($source) and not $self->_is_set($source) )
         or ( $self->exists($dest)   and not $self->_is_set($dest)   );
 
