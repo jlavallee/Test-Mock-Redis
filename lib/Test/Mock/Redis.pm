@@ -511,10 +511,14 @@ sub llen {
 sub lrange {
     my ( $self, $key, $start, $end ) = @_;
 
-    my $array = $self->_stash->{$key};
-    ($start,$end) = _normalize_range(scalar(@$array),$start,$end);
+    my @result;
 
-    return wantarray ? @{ $array }[$start..$end] : [ @{ $array }[$start..$end] ];
+    if ( my $array = $self->_stash->{$key} ) {
+      ($start,$end) = _normalize_range(scalar(@$array),$start,$end);
+      @result = @{ $array }[$start..$end];
+    }
+
+    return wantarray ? @result : \ @result;
 }
 
 sub ltrim {

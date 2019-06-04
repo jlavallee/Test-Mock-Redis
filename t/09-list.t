@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib 't/tlib';
 use Test::More;
-use Test::Mock::Redis;
+use Test::Mock::Redis ();
 
 =pod
     BLPOP
@@ -125,6 +125,7 @@ foreach my $r (@redi){
     is_deeply([$r->lrange(destination => 2, -2)], [qw/x/]);
     is_deeply([$r->lrange(destination => -3, 5)], [qw/c x y/]);
     is_deeply([$r->lrange(destination => 3, 1)], []);
+    is_deeply([$r->lrange(nonexisting => 0, -1)], []);
 
     # arrayref versions of the above block
     is_deeply scalar $r->lrange(destination => 0, 2), [qw/z c x/];
@@ -133,6 +134,7 @@ foreach my $r (@redi){
     is_deeply scalar $r->lrange(destination => 2, -2), [qw/x/];
     is_deeply scalar $r->lrange(destination => -3, 5), [qw/c x y/];
     is_deeply scalar $r->lrange(destination => 3, 1), [];
+    is_deeply scalar $r->lrange(nonexisting => 0, -1), [];
 
     $r->lset(destination => 0, 'a');
     $r->lset(destination => -1, 'f');
