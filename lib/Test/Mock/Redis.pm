@@ -741,7 +741,7 @@ sub sdiffstore {
 sub hset {
     my ( $self, $key, $hkey, $value ) = @_;
 
-    confess '[hset] ERR Operation against a key holding the wrong kind of value'
+    confess '[hset] WRONGTYPE Operation against a key holding the wrong kind of value'
          if $self->exists($key) and !$self->_is_hash($key);
 
 
@@ -796,7 +796,7 @@ sub hmget {
 sub hexists {
     my ( $self, $key, $hkey ) = @_;
 
-    confess '[hexists] ERR Operation against a key holding the wrong kind of value'
+    confess '[hexists] WRONGTYPE Operation against a key holding the wrong kind of value'
          if $self->exists($key) and !$self->_is_hash($key);
 
     return $self->exists($key) && exists $self->_stash->{$key}->{$hkey} ? 1 : 0;
@@ -822,8 +822,8 @@ sub hincrby {
          if $self->exists($key) and !$self->_is_hash($key);
 
     confess "[hincrby] ERR hash value is not an integer"
-         if $self->hexists($key, $hkey)                   # it exists
-             and $self->hget($key, $hkey) !~ /^-?\d+$|^$/ # and it doesn't look like an integer (and it isn't empty)
+         if $self->hexists($key, $hkey)                # it exists
+             and $self->hget($key, $hkey) !~ /^-?\d+$/ # and it doesn't look like an integer (and it isn't empty)
     ;
 
     $self->_make_hash($key) unless $self->_is_hash($key);
@@ -844,7 +844,7 @@ sub hlen {
 sub hkeys {
     my ( $self, $key ) = @_;
 
-    confess '[hkeys] ERR Operation against a key holding the wrong kind of value'
+    confess '[hkeys] WRONGTYPE Operation against a key holding the wrong kind of value'
          if $self->exists($key) and !$self->_is_hash($key);
 
     return () unless $self->exists($key);
@@ -855,7 +855,7 @@ sub hkeys {
 sub hvals {
     my ( $self, $key ) = @_;
 
-    confess '[hvals] ERR Operation against a key holding the wrong kind of value'
+    confess '[hvals] WRONGTYPE Operation against a key holding the wrong kind of value'
          if $self->exists($key) and !$self->_is_hash($key);
 
     return values %{ $self->_stash->{$key} };
@@ -864,7 +864,7 @@ sub hvals {
 sub hgetall {
     my ( $self, $key ) = @_;
 
-    confess "[hgetall] ERR Operation against a key holding the wrong kind of value"
+    confess "[hgetall] WRONGTYPE Operation against a key holding the wrong kind of value"
          if $self->exists($key) and !$self->_is_hash($key);
 
     return $self->exists( $key )
