@@ -17,11 +17,11 @@ Test::Mock::Redis - use in place of Redis for unit testing
 
 =head1 VERSION
 
-Version 0.21
+Version 0.22
 
 =cut
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 =head1 SYNOPSIS
 
@@ -1249,6 +1249,8 @@ The following people have contributed to I<Test::Mock::Redis>:
 =item * Nigel Gregoire
 
 =item * Thomas Bloor
+
+=item * Valery Kalesnik
 
 =item * Yaakov Shaul
 
